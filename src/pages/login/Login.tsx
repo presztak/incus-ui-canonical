@@ -13,7 +13,7 @@ const Login: FC = () => {
   const hasOidc = settings?.auth_methods?.includes(AUTH_METHOD.OIDC);
 
   if (isAuthLoading) {
-    return <Spinner className="u-loader" text="Loading..." isMainComponent />;
+    return <Spinner className="u-loader" text="Loading resources..." />;
   }
 
   if (isAuthenticated) {
