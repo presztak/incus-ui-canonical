@@ -1,8 +1,6 @@
 import {
-  canonicalServer,
-  imagesLxdServer,
+  linuxContainersServer,
   loadRemoteImagesLegacy,
-  minimalServer,
 } from "util/imageLegacy";
 
 const jsonResponse = (data: unknown) =>
@@ -34,40 +32,36 @@ describe("loadRemoteImagesLegacy", () => {
     vi.unstubAllGlobals();
   });
 
-  it("loads images from all sources by default", async () => {
+  it("loads images from the default source", async () => {
     const fetchMock = stubFetch(jsonResponse(products));
 
     const result = await loadRemoteImagesLegacy();
 
-    // one request for each of the three built-in sources
-    // (ubuntu, ubuntu minimal and lxd images)
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(result.error).toBe("");
     expect(result.images.map((image) => image.server)).toEqual([
-      canonicalServer,
-      minimalServer,
-      imagesLxdServer,
+      linuxContainersServer,
     ]);
   });
 
   it("loads images only from the requested server", async () => {
     const fetchMock = stubFetch(jsonResponse(products));
 
-    const result = await loadRemoteImagesLegacy(imagesLxdServer);
+    const result = await loadRemoteImagesLegacy(linuxContainersServer);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://images.lxd.canonical.com/streams/v1/images.json",
+      "https://images.linuxcontainers.org/streams/v1/images.json",
     );
     expect(result.error).toBe("");
     expect(result.images).toHaveLength(1);
-    expect(result.images[0].server).toBe(imagesLxdServer);
+    expect(result.images[0].server).toBe(linuxContainersServer);
   });
 
   it("returns only the error of the requested source", async () => {
     stubFetch(errorResponse("not found"));
 
-    const result = await loadRemoteImagesLegacy(minimalServer);
+    const result = await loadRemoteImagesLegacy(linuxContainersServer);
 
     expect(result.images).toEqual([]);
     expect(result.error).toBe("not found");

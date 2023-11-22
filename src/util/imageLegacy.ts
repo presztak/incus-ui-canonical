@@ -6,17 +6,9 @@ import type {
 import { capitalizeFirstLetter, handleResponse } from "util/helpers";
 import { byLtsFirst } from "util/images";
 
-const canonicalJson =
-  "https://cloud-images.ubuntu.com/releases/streams/v1/com.ubuntu.cloud:released:download.json";
-export const canonicalServer = "https://cloud-images.ubuntu.com/releases";
-
-const minimalJson =
-  "https://cloud-images.ubuntu.com/minimal/releases/streams/v1/com.ubuntu.cloud:released:download.json";
-export const minimalServer =
-  "https://cloud-images.ubuntu.com/minimal/releases/";
-
-const imagesLxdJson = "https://images.lxd.canonical.com/streams/v1/images.json";
-export const imagesLxdServer = "https://images.lxd.canonical.com";
+const linuxContainersJson =
+  "https://images.linuxcontainers.org/streams/v1/images.json";
+export const linuxContainersServer = "https://images.linuxcontainers.org";
 
 interface LegacyImageSource {
   label: string;
@@ -27,21 +19,9 @@ interface LegacyImageSource {
 
 export const legacyImageSources: LegacyImageSource[] = [
   {
-    label: "Ubuntu",
-    server: canonicalServer,
-    json: canonicalJson,
-    sortLtsFirst: true,
-  },
-  {
-    label: "Ubuntu Minimal",
-    server: minimalServer,
-    json: minimalJson,
-    sortLtsFirst: true,
-  },
-  {
-    label: "LXD Images",
-    server: imagesLxdServer,
-    json: imagesLxdJson,
+    label: "Linux Containers",
+    server: linuxContainersServer,
+    json: linuxContainersJson,
     sortLtsFirst: false,
   },
 ];

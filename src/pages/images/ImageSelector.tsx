@@ -45,10 +45,8 @@ import {
 import type { CustomSelectOption } from "@canonical/react-components/dist/components/CustomSelect/CustomSelectDropdown";
 import DsIcon from "components/DsIcon";
 import {
-  canonicalServer,
-  imagesLxdServer,
   legacyImageSources,
-  minimalServer,
+  linuxContainersServer,
 } from "util/imageLegacy";
 
 interface Props {
@@ -329,14 +327,8 @@ const ImageSelector: FC<Props> = ({ onSelect, onClose }) => {
           "ubuntu-minimal",
           "",
         ].includes(item.registryName ?? "");
-        if (item.server === canonicalServer && isKnownRegistry) {
-          source = "Ubuntu";
-        }
-        if (item.server === minimalServer && isKnownRegistry) {
-          source = "Ubuntu Minimal";
-        }
-        if (item.server === imagesLxdServer && isKnownRegistry) {
-          source = "LXD Images";
+        if (item.server === linuxContainersServer) {
+          source = "Linux Containers";
         }
         return source;
       };
