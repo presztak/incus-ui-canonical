@@ -3,7 +3,6 @@ import { Spinner, CustomLayout } from "@canonical/react-components";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "context/auth";
 import { ROOT_PATH } from "util/rootPath";
-import AuthenticationOptions from "components/AuthenticationOptions";
 import { useSettings } from "context/useSettings";
 import { AUTH_METHOD } from "util/authentication";
 import DsIcon from "components/DsIcon";
@@ -23,14 +22,14 @@ const Login: FC = () => {
 
   return (
     <>
-      <CustomLayout contentClassName="login">
+      <CustomLayout>
         <div className="empty-state login-page">
-          {hasOidc && (
-            <>
-              <div className="u-sv2">
-                <span className="lxd-icon" aria-hidden="true" />
-              </div>
-              <div className="auth-container">
+          <h1 className="p-heading--4 u-sv-2">Login</h1>
+
+          <>
+            <p className="u-sv1">Choose your login method</p>
+            <div className="auth-container">
+              {hasOidc && (
                 <a
                   className="p-button--positive has-icon"
                   href={`${ROOT_PATH}/oidc/login`}
@@ -38,19 +37,12 @@ const Login: FC = () => {
                   <DsIcon icon="security" />
                   <span>Login with SSO</span>
                 </a>
-                <Link to={`${ROOT_PATH}/ui/login/certificate-generate`}>
-                  <span>Set up TLS login</span>
-                </Link>
-              </div>
-            </>
-          )}
-          {!hasOidc && (
-            <>
-              <span className="lxd-icon" aria-hidden="true" />
-              <h1 className="p-heading--4 u-sv1">Choose your login method</h1>
-              <AuthenticationOptions />
-            </>
-          )}
+              )}
+              <Link to={`${ROOT_PATH}/ui/login/certificate-generate`}>
+                <span>Set up TLS login</span>
+              </Link>
+            </div>
+          </>
         </div>
       </CustomLayout>
     </>
