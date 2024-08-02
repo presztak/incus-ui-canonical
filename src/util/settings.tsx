@@ -72,6 +72,14 @@ export const getUserSettings = (configPairs: LxdConfigPair): UserSetting[] => {
       isSaved: true,
     },
     {
+      key: "user.ui.sso_only",
+      category: "user",
+      default: "false",
+      shortdesc: "Whether to restrict login options to SSO/OIDC only.",
+      type: "bool",
+      isSaved: true,
+    },
+    {
       key: "user.ui.default_project",
       category: "user",
       default: "",
