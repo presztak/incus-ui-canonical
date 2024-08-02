@@ -61,7 +61,7 @@ export const getConfigFieldClusteredValue = (
 export const getUserSettings = (configPairs: LxdConfigPair): UserSetting[] => {
   const settings: UserSetting[] = [
     {
-      key: "user.ui_grafana_base_url",
+      key: "user.ui.grafana.base_url",
       category: "user",
       default: "",
       longdesc:
@@ -72,7 +72,7 @@ export const getUserSettings = (configPairs: LxdConfigPair): UserSetting[] => {
       isSaved: true,
     },
     {
-      key: "user.ui_login_project",
+      key: "user.ui.default_project",
       category: "user",
       default: "",
       shortdesc: "Project to display on login.",
@@ -81,7 +81,7 @@ export const getUserSettings = (configPairs: LxdConfigPair): UserSetting[] => {
       isMovedToIdentityPage: true,
     },
     {
-      key: "user.ui_theme",
+      key: "user.ui.theme",
       category: "user",
       default: "",
       shortdesc:
@@ -91,7 +91,7 @@ export const getUserSettings = (configPairs: LxdConfigPair): UserSetting[] => {
       isMovedToIdentityPage: true,
     },
     {
-      key: "user.ui_title",
+      key: "user.ui.title",
       category: "user",
       default: "",
       shortdesc:
