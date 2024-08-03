@@ -761,7 +761,7 @@ const Navigation: FC = () => {
                     <SideNavigationItem>
                       <NavLink
                         to={`${ROOT_PATH}/ui/identity`}
-                        title={`${loggedInUserName} (${loggedInUserID})`}
+                        title={`${loggedInUserName}`}
                         onClick={softToggleMenu}
                       >
                         {loggedInUserIcon && (
