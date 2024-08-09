@@ -133,6 +133,7 @@ describe("General util functions for permissions feature", () => {
           "storage-cephobject": {},
           "storage-dir": {},
           "storage-lvm": {},
+          "storage-lvmcluster": {},
           "storage-powerflex": {},
           "storage-powerstore": {},
           "storage-pure": {},
