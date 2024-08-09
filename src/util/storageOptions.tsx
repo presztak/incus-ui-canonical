@@ -12,6 +12,7 @@ export const powerFlex = "powerflex";
 export const powerStore = "powerstore";
 export const pureStorage = "pure";
 export const alletraDriver = "alletra";
+export const lvmClusterDriver = "lvmcluster";
 
 export const storageDriverLabels: { [key: string]: string } = {
   [dirDriver]: "Directory",
@@ -25,6 +26,7 @@ export const storageDriverLabels: { [key: string]: string } = {
   [pureStorage]: "Pure Storage",
   [cephObject]: "Ceph Object",
   [alletraDriver]: "HPE Alletra",
+  [lvmClusterDriver]: "LVM Cluster",
 };
 
 export const storageDriverDescriptions: { [key: string]: string } = {
@@ -119,6 +121,7 @@ export const driversWithFilesystemSupport = [
   cephDriver,
   pureStorage,
   cephObject,
+  lvmClusterDriver,
 ];
 
 export const isRemoteStorage = (driver: string) => {
