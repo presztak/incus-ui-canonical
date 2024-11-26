@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { ActionButton, usePortal } from "@canonical/react-components";
+import { Button, usePortal } from "@canonical/react-components";
 import type { LxdInstance } from "types/instance";
 import { useInstanceLoading } from "context/instanceLoading";
 import MigrateInstanceModal from "../MigrateInstanceModal";
@@ -9,7 +9,6 @@ import DsIcon from "components/DsIcon";
 
 interface Props {
   instance: LxdInstance;
-  project: string;
   classname?: string;
   onClose?: () => void;
 }
@@ -31,11 +30,11 @@ const MigrateInstanceBtn: FC<Props> = ({ instance, classname }) => {
           <MigrateInstanceModal close={closePortal} instance={instance} />
         </Portal>
       )}
-      <ActionButton
-        onClick={openPortal}
-        type="button"
-        className={classNames("u-no-margin--bottom has-icon", classname)}
+      <Button
+        appearance="base"
         loading={isLoading}
+        className="has-icon is-dense"
+        onClick={openPortal}
         disabled={isDisabled || !canEditInstance(instance) || isLoading}
         title={
           canEditInstance()
@@ -44,8 +43,7 @@ const MigrateInstanceBtn: FC<Props> = ({ instance, classname }) => {
         }
       >
         <DsIcon icon="machines" />
-        <span>Migrate</span>
-      </ActionButton>
+      </Button>
     </>
   );
 };
