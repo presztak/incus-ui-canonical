@@ -34,4 +34,5 @@ export const queryKeys = {
   permissions: "permissions",
   currentIdentity: "currentIdentity",
   peers: "peers",
+  instancePreview: "instancePreview",
 };
