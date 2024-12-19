@@ -36,7 +36,9 @@ import {
 } from "util/devices";
 import { isInstanceCreation } from "util/instanceEdit";
 import { ensureEditMode } from "util/editMode";
+import { isSpecialDisk } from "util/instanceValidation";
 import { focusField, optionRenderer } from "util/formFields";
+import { getSpecialDiskSourceOptions } from "util/storageVolume";
 import AttachDiskDeviceBtn from "pages/storage/AttachDiskDeviceBtn";
 import type { LxdProfile } from "types/profile";
 import type { LxdStorageVolume } from "types/storage";
@@ -59,6 +61,7 @@ interface Props {
 
 const DiskDeviceFormCustom: FC<Props> = ({ formik, project, profiles }) => {
   const readOnly = (formik.values as EditInstanceFormValues).readOnly;
+
   const existingDeviceNames = getExistingDeviceNames(formik.values, profiles);
   const isProfile = formik.values.entityType === "profile";
   const { data: configOptions } = useConfigOptions();
@@ -356,22 +359,59 @@ const DiskDeviceFormCustom: FC<Props> = ({ formik, project, profiles }) => {
           override: "",
         });
 
+      const specialDiskDeviceSource = () =>
+        getConfigurationRowBase({
+          className: "no-border-top inherited-with-form",
+          configuration: <Label forId={`devices.${index}.source`}>Source</Label>,
+          inherited: readOnly ? (
+            <div className="custom-disk-read-mode">
+              <div className="mono-font custom-disk-value u-truncate">
+                <b>{item.source}</b>
+              </div>
+              {editButton(`devices.${index}.source`)}
+            </div>
+          ) : (
+            <Select
+              id={`devices.${index}.source`}
+              name={`devices.${index}.source`}
+              onBlur={formik.handleBlur}
+              onChange={(e) => {
+                ensureEditMode(formik);
+                void formik.setFieldValue(
+                  `devices.${index}.source`,
+                  e.target.value,
+                );
+              }}
+              value={item.source}
+              options={getSpecialDiskSourceOptions()}
+            />
+          ),
+          override: "",
+        });
+
       const isContainerOrProfile =
         isProfile ||
         (formik.values as CreateInstanceFormValues).instanceType ===
           "container";
       const isVolumeBackedDisk = isVolumeDevice(item);
+      const isSpecialDiskDevice = isSpecialDisk(item);
       const isReadonlyDisk = item.readonly === "true";
       const isRecursiveDisk = item.recursive === "true";
       const showMountPointField =
-        !isVolumeBackedDisk || item.path !== undefined;
-      const showRecursiveField = !isVolumeBackedDisk;
-      const showShiftField = isContainerOrProfile && !isVolumeBackedDisk;
+        (!isVolumeBackedDisk && !isSpecialDiskDevice) ||
+        item.path !== undefined;
+      const showRecursiveField = !isVolumeBackedDisk && !isSpecialDiskDevice;
+      const showShiftField =
+        isContainerOrProfile && !isVolumeBackedDisk && !isSpecialDiskDevice;
       const isRequiredLastRow = !showShiftField;
 
-      rows.push(
-        isVolumeDevice(item) ? volumeDeviceSource() : hostDeviceSource(),
-      );
+      if (isSpecialDiskDevice) {
+        rows.push(specialDiskDeviceSource());
+      } else if (isVolumeBackedDisk) {
+        rows.push(volumeDeviceSource());
+      } else {
+        rows.push(hostDeviceSource());
+      }
 
       if (showMountPointField) {
         const hasError = isDiskDeviceMountPointMissing(formik, index);
