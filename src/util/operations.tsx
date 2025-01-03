@@ -1,3 +1,4 @@
+import type { LxdInstance } from "types/instance";
 import type { LxdOperation } from "types/operation";
 import type { LxdEvent } from "types/event";
 
@@ -109,3 +110,15 @@ export const getFingerprint = (result: LxdEvent | LxdOperation): string => {
   }
   return "";
 };
+
+export const findOperation = (instance: LxdInstance, operations: LxdOperation[], operation_type: string) => {
+  return operations.find((operation) => {
+    const projectName = getProjectName(operation);
+    const instanceName = getInstanceName(operation);
+
+    if (projectName == instance.project && instanceName == instance.name && operation_type == operation.description) {
+      return true;
+    }
+    return false;
+  });
+}
