@@ -1,4 +1,10 @@
-import type { LxdOperation, LxdOperationStatus } from "types/operation";
+import type { LxdInstance } from "types/instance";
+import type {
+  LxdOperation,
+  LxdOperationResponse,
+  LxdOperationStatus,
+} from "types/operation";
+import type { ReactNode } from "react";
 import type { LxdEvent } from "types/event";
 
 // Extracts entity URLs from an operation, considering renaming operations where the original_entity_url is returned.
@@ -150,3 +156,15 @@ export const getIconNameForStatus = (status: LxdOperationStatus) => {
     Success: "status-succeeded-small",
   }[status];
 };
+
+export const findOperation = (instance: LxdInstance, operations: LxdOperation[], operation_type: string) => {
+  return operations.find((operation) => {
+    const projectName = getProjectName(operation);
+    const instanceName = getInstanceName(operation);
+
+    if (projectName == instance.project && instanceName == instance.name && operation_type == operation.description) {
+      return true;
+    }
+    return false;
+  });
+}
