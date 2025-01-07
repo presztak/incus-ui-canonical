@@ -43,7 +43,7 @@ const matchesConfigQuery = (instance: LxdInstance, query: string): boolean => {
     return false;
   }
 
-  const config = instance.expanded_config ?? instance.config;
+  const config = instance.expanded_config ?? instance.config ?? {};
   const matchingKey = Object.keys(config).find(
     (item) => item.toLowerCase() === configKey,
   );
@@ -61,7 +61,7 @@ export const instanceMatchesQuery = (
   return (
     instance.name.toLowerCase().includes(lowerQuery) ||
     instance.description.toLowerCase().includes(lowerQuery) ||
-    !!instance.config["image.description"]
+    !!instance.config?.["image.description"]
       ?.toLowerCase()
       .includes(lowerQuery) ||
     matchesConfigQuery(instance, lowerQuery)
