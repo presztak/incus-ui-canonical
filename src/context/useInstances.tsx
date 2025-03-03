@@ -7,19 +7,24 @@ import type { LxdInstance } from "types/instance";
 
 export const useInstances = (
   project: string | null,
+  filter?: string,
 ): UseQueryResult<LxdInstance[]> => {
   const { isFineGrained } = useAuth();
   const { hasInstanceStateSelectiveRecursion } = useSupportedFeatures();
 
   return useQuery({
-    queryKey: [queryKeys.instances, project],
+    queryKey: [queryKeys.instances, project, filter],
     queryFn: async () =>
       fetchInstances(
         project,
         isFineGrained,
         hasInstanceStateSelectiveRecursion,
+        filter,
       ),
     enabled: isFineGrained !== null,
+    // keep showing the previous list of the same project while a new filter loads
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[1] === project ? previousData : undefined,
   });
 };
 
