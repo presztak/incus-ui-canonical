@@ -27,6 +27,7 @@ import { useProjectEntitlements } from "util/entitlements/projects";
 import { useStoragePools } from "context/useStoragePools";
 import { useIsClustered } from "context/useIsClustered";
 import { InstanceRichChip } from "../InstanceRichChip";
+import { encodeServerFilters } from "util/instanceFilter";
 
 interface Props {
   instance: LxdInstance;
@@ -55,7 +56,7 @@ const CopyInstanceForm: FC<Props> = ({ instance, close }) => {
   const { data: storagePools = [], isLoading: storagePoolsLoading } =
     useStoragePools();
 
-  const { data: instances = [] } = useInstances(instance.project);
+  const { data: instances = [] } = useInstances(instance.project, encodeServerFilters([""]));
 
   const notifySuccess = (
     name: string,
