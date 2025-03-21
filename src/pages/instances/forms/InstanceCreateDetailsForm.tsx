@@ -28,6 +28,7 @@ import AutoExpandingTextArea from "components/AutoExpandingTextArea";
 import ScrollableForm from "components/ScrollableForm";
 import { useSupportedFeatures } from "context/useSupportedFeatures";
 import UploadInstanceFileBtn from "../actions/UploadInstanceFileBtn";
+import UseOCIBtn from "../actions/UseOCIBtn";
 import SshKeyForm from "components/forms/SshKeyForm";
 
 export const instanceDetailPayload = (values: InstanceDetailsFormValues) => {
@@ -39,7 +40,7 @@ export const instanceDetailPayload = (values: InstanceDetailsFormValues) => {
     source: {
       alias: values.image?.aliases.split(",")[0],
       mode: "pull",
-      protocol: "simplestreams",
+      protocol: values.image?.protocol ?? "simplestreams",
       server: values.image?.server,
       type: "image",
     },
@@ -146,6 +147,7 @@ const InstanceCreateDetailsForm: FC<Props> = ({
                   <UseCustomIsoBtn onSelect={onSelectImage} />
                 )}
                 <UploadInstanceFileBtn name={formik.values.name} />
+                <UseOCIBtn onSelect={onSelectImage} />
               </>
             )}
           </div>
