@@ -25,6 +25,7 @@ import AutoExpandingTextArea from "components/AutoExpandingTextArea";
 import ScrollableForm from "components/ScrollableForm";
 import { useSupportedFeatures } from "context/useSupportedFeatures";
 import UploadInstanceFileBtn from "../actions/UploadInstanceFileBtn";
+import UseOCIBtn from "../actions/UseOCIBtn";
 import { InstanceIconType } from "components/ResourceIcon";
 
 export interface InstanceDetailsFormValues {
@@ -37,6 +38,7 @@ export interface InstanceDetailsFormValues {
   entityType: "instance";
   isCreating: boolean;
   readOnly: boolean;
+  protocol?: string;
 }
 
 export const instanceDetailPayload = (values: CreateInstanceFormValues) => {
@@ -48,7 +50,7 @@ export const instanceDetailPayload = (values: CreateInstanceFormValues) => {
     source: {
       alias: values.image?.aliases.split(",")[0],
       mode: "pull",
-      protocol: "simplestreams",
+      protocol: values.protocol ?? "simplestreams",
       server: values.image?.server,
       type: "image",
     },
@@ -146,6 +148,12 @@ const InstanceCreateDetailsForm: FC<Props> = ({
                   <UseCustomIsoBtn onSelect={onSelectImage} />
                 )}
                 <UploadInstanceFileBtn name={formik.values.name} />
+                <UseOCIBtn
+                  onSelect={(image: RemoteImage, type?: LxdImageType) => {
+                    void formik.setFieldValue("protocol", "oci");
+                    onSelectImage(image, type);
+                  }}
+                />
               </>
             )}
           </div>
