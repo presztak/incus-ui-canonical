@@ -20,6 +20,7 @@ import AutoExpandingTextArea from "components/AutoExpandingTextArea";
 import ScrollableForm from "components/ScrollableForm";
 import { useSupportedFeatures } from "context/useSupportedFeatures";
 import UploadInstanceFileBtn from "../actions/UploadInstanceFileBtn";
+import UseOCIBtn from "../actions/UseOCIBtn";
 import SshKeyForm from "components/forms/SshKeyForm";
 
 interface Props {
@@ -39,6 +40,10 @@ const InstanceCreateDetailsForm: FC<Props> = ({
     const image = formik.values.image;
 
     if (!image) return "";
+
+    if (image.protocol === "oci") {
+      return `${image.aliases.split(",")[0]}`;
+    }
 
     if (image.variant?.toLocaleLowerCase().includes("desktop")) {
       return `${image.os} ${image.release} ${image.aliases.split(",")[0]}`;
@@ -103,6 +108,7 @@ const InstanceCreateDetailsForm: FC<Props> = ({
                   <UseCustomIsoBtn onSelect={onSelectImage} />
                 )}
                 <UploadInstanceFileBtn name={formik.values.name} />
+                <UseOCIBtn onSelect={onSelectImage} />
               </>
             )}
           </div>
