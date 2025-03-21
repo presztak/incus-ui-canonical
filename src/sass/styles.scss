@@ -181,6 +181,7 @@ $border-thin: 1px solid $colors--theme--border-low-contrast !default;
 @import "user_keys";
 @import "warnings_table";
 @import "yaml_type_selector";
+@import "use_oci_modal";
 
 body {
   // needed for notification list expanding animation
