@@ -130,40 +130,36 @@ const StorageVolumeFormMain: FC<Props> = ({
               formik.values.volumeType !== "custom"
             }
           />
-          {isCreating ? (
-            <Select
-              {...getStorageVolumeFormProps(formik, "content_type")}
-              options={[
-                {
-                  label: "filesystem",
-                  value: "filesystem",
-                },
-                {
-                  label: "block",
-                  value: "block",
-                },
-              ]}
-              label="Content type"
-              help="Type filesystem is ready to mount and write files to. Type block can only be attached to VMs, and is treated like an empty block device."
-              onChange={(e) => {
-                if (e.target.value === "block") {
-                  formik.setFieldValue("block_filesystem", undefined);
-                  formik.setFieldValue("block_mount_options", undefined);
-                  formik.setFieldValue("block_type", undefined);
-                  formik.setFieldValue("security_shifted", undefined);
-                  formik.setFieldValue("security_unmapped", undefined);
-                }
-                formik.setFieldValue("content_type", e.target.value);
-              }}
-            />
-          ) : (
-            <OutputField
-              id="storage-volume-content-type"
-              label="Content type"
-              value={formik.values.content_type}
-              help="Content type is immutable after creation."
-            />
-          )}
+          <Select
+            {...getStorageVolumeFormProps(formik, "content_type")}
+            options={[
+              {
+                label: "filesystem",
+                value: "filesystem",
+              },
+              {
+                label: "block",
+                value: "block",
+              },
+            ]}
+            label="Content type"
+            help={
+              formik.values.isCreating
+                ? "Type filesystem is ready to mount and write files to. Type block can only be attached to VMs, and is treated like an empty block device."
+                : "Content type is immutable after creation."
+            }
+            onChange={(e) => {
+              if (e.target.value === "block") {
+                formik.setFieldValue("block_filesystem", undefined);
+                formik.setFieldValue("block_mount_options", undefined);
+                formik.setFieldValue("block_type", undefined);
+                formik.setFieldValue("security_shifted", undefined);
+                formik.setFieldValue("security_unmapped", undefined);
+              }
+              formik.setFieldValue("content_type", e.target.value);
+            }}
+            disabled={!formik.values.isCreating}
+          />
         </Col>
       </Row>
       {formik.values.content_type === "filesystem" && (
