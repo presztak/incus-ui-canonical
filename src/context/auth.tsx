@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "util/queryKeys";
 import { fetchCertificates } from "api/certificates";
 import { fetchProjects } from "api/projects";
-import { fetchCurrentIdentity } from "api/auth-identities";
 import { useSupportedFeatures } from "./useSupportedFeatures";
 import { getLoginProject } from "util/loginProject";
 import { AUTH_METHOD, type LXDAuthMethod } from "util/authentication";
@@ -46,43 +45,16 @@ interface ProviderProps {
 }
 
 export const AuthProvider: FC<ProviderProps> = ({ children }) => {
-  const {
-    hasEntitiesWithEntitlements,
-    hasReplicators,
-    isSettingsLoading,
-    settings,
-    settingsError,
-  } = useSupportedFeatures();
+  const { hasReplicators, isSettingsLoading, settings, settingsError } =
+    useSupportedFeatures();
 
   const authMethod = settings?.auth_user_method ?? null;
-
-  const {
-    data: currentIdentity,
-    isLoading: isIdentityLoading,
-    error: identityError,
-  } = useQuery({
-    queryKey: [queryKeys.currentIdentity],
-    queryFn: fetchCurrentIdentity,
-    retry: false, // avoid retry for older versions of lxd less than 5.21 due to missing endpoint
-    enabled:
-      !isSettingsLoading &&
-      settings &&
-      settings.auth !== "untrusted" &&
-      authMethod !== AUTH_METHOD.UNIX &&
-      !settingsError &&
-      settings.api_extensions?.includes("access_management_tls"),
-  });
 
   const isFineGrained = () => {
     if (isSettingsLoading) {
       return null;
     }
-    if (authMethod === AUTH_METHOD.UNIX) {
-      return false;
-    }
-    if (hasEntitiesWithEntitlements) {
-      return currentIdentity?.fine_grained ?? null;
-    }
+
     return false;
   };
 
@@ -117,30 +89,22 @@ export const AuthProvider: FC<ProviderProps> = ({ children }) => {
     isFineGrained() !== true &&
     (certificate?.restricted ?? defaultProject !== "default");
 
-  const serverEntitlements = (currentIdentity?.effective_permissions || [])
-    .filter((permission) => permission.entity_type === "server")
-    .map((permission) => permission.entitlement);
-
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated: (settings && settings.auth !== "untrusted") ?? false,
         isAuthLoading:
-          isSettingsLoading ||
-          isIdentityLoading ||
-          isProjectsLoading ||
-          isCertificatesLoading,
-        authError:
-          settingsError ?? identityError ?? projectError ?? certificateError,
+          isSettingsLoading || isProjectsLoading || isCertificatesLoading,
+        authError: settingsError ?? projectError ?? certificateError,
         isRestricted,
         defaultProject,
         hasNoProjects: projects.length === 0 && !isProjectsLoading,
         isFineGrained: isFineGrained(),
-        serverEntitlements,
         authMethod,
-        authExpiresAt: currentIdentity?.expires_at ?? null,
-        effectiveGroups: currentIdentity?.effective_groups ?? null,
-        currentIdentity: currentIdentity ?? null,
+        serverEntitlements: [],
+        authExpiresAt: null,
+        effectiveGroups: null,
+        currentIdentity: null,
       }}
     >
       {children}
