@@ -13,6 +13,7 @@ import type { NetworkFormValues } from "types/forms/network";
 import type { ProjectFormValues } from "types/forms/project";
 import { getConfigRowMetadata } from "util/configInheritance";
 import type { StoragePoolFormValues } from "types/forms/storagePool";
+import { cleanDescription } from "util/config";
 import { ensureEditMode } from "util/instanceEdit";
 import { focusField } from "util/formFields";
 import type { NetworkAclFormValues } from "types/forms/networkAcl";
@@ -111,7 +112,7 @@ export const getConfigurationRow = ({
                 <ConfigFieldDescription
                   description={
                     metadata.configField
-                      ? metadata.configField.longdesc
+                      ? cleanDescription(metadata.configField.longdesc)
                       : inputHelp
                   }
                 />
