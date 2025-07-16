@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { configDescriptionToHtml } from "util/config";
+import { cleanDescription, configDescriptionToHtml } from "util/config";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDocObjects } from "api/server";
 
@@ -19,7 +19,10 @@ const ConfigFieldDescription: FC<Props> = ({ description, className }) => {
     <span
       className={className}
       dangerouslySetInnerHTML={{
-        __html: configDescriptionToHtml(description, objectsInvTxt.data),
+        __html: configDescriptionToHtml(
+          cleanDescription(description),
+          objectsInvTxt.data,
+        ),
       }}
     />
   ) : null;

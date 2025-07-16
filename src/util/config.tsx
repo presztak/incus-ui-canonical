@@ -101,3 +101,7 @@ export const configDescriptionToHtml = (
 
   return result;
 };
+
+export const cleanDescription = (input: string): string => {
+  return input.replace(/(?:^|\s)(See {ref}[^.]*[.])/g, "");
+};
