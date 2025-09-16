@@ -11,12 +11,13 @@ import {
 } from "@canonical/react-components";
 import TabLinks from "components/TabLinks";
 import NetworkForwards from "pages/networks/NetworkForwards";
+import NetworkLoadBalancers from "pages/networks/NetworkLoadBalancers";
 import { useNetwork } from "context/useNetworks";
 import NetworkLeases from "pages/networks/NetworkLeases";
 import {
+  ovnType,
   typesWithForwards,
   typesWithLeases,
-  typesWithLoadBalancers,
   typesWithLocalPeerings,
 } from "util/networks";
 import NetworkPeers from "./NetworkPeers";
@@ -24,12 +25,9 @@ import { slugify } from "util/slugify";
 import classnames from "classnames";
 import NotFound from "components/NotFound";
 import { ROOT_PATH } from "util/rootPath";
-import LoadBalancers from "pages/networks/LoadBalancers";
-import { useSupportedFeatures } from "context/useSupportedFeatures";
 
 const NetworkDetail: FC = () => {
   const notify = useNotify();
-  const { hasLoadBalancerPools } = useSupportedFeatures();
 
   const { name, project, member, activeTab } = useParams<{
     name: string;
@@ -62,8 +60,6 @@ const NetworkDetail: FC = () => {
   const isManagedNetwork = network?.managed ?? false;
   const hasForwards =
     typesWithForwards.includes(network?.type ?? "") && isManagedNetwork;
-  const hasLoadBalancers =
-    typesWithLoadBalancers.includes(network?.type ?? "") && isManagedNetwork;
   const hasLeases =
     typesWithLeases.includes(network?.type ?? "") && isManagedNetwork;
   const isPeeringSupported = typesWithLocalPeerings.includes(
@@ -100,9 +96,7 @@ const NetworkDetail: FC = () => {
   const tabs = [
     "Configuration",
     getTabLink("Forwards", hasForwards, "forwards"),
-    ...(hasLoadBalancerPools
-      ? [getTabLink("Load balancers", hasLoadBalancers, "load-balancers")]
-      : []),
+    getTabLink("Load balancers", hasForwards, "load-balancers"),
     getTabLink("Leases", hasLeases, "leases"),
     getTabLink("Local peerings", isPeeringSupported, "local-peerings"),
   ];
@@ -139,7 +133,9 @@ const NetworkDetail: FC = () => {
           )}
           {activeTab === "load-balancers" && (
             <div role="tabpanel" aria-labelledby="load-balancers">
-              {network && <LoadBalancers network={network} />}
+              {network && (
+                <NetworkLoadBalancers network={network} project={project} />
+              )}
             </div>
           )}
           {activeTab === "leases" && (

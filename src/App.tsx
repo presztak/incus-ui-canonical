@@ -45,8 +45,8 @@ const CreateNetworkAcl = lazy(
 const CreateNetworkForward = lazy(
   async () => import("pages/networks/CreateNetworkForward"),
 );
-const CreateLoadBalancer = lazy(
-  async () => import("pages/networks/CreateLoadBalancer"),
+const CreateNetworkLoadBalancer = lazy(
+  async () => import("pages/networks/CreateNetworkLoadBalancer"),
 );
 const CreateProfile = lazy(async () => import("pages/profiles/CreateProfile"));
 const CreateProject = lazy(async () => import("pages/projects/CreateProject"));
@@ -56,10 +56,10 @@ const CreateStoragePool = lazy(
 const EditNetworkForward = lazy(
   async () => import("pages/networks/EditNetworkForward"),
 );
-const EditLoadBalancer = lazy(
-  async () => import("pages/networks/EditLoadBalancer"),
-);
 const LocalImageList = lazy(async () => import("pages/images/LocalImageList"));
+const EditNetworkLoadBalancer = lazy(
+  async () => import("pages/networks/EditNetworkLoadBalancer"),
+);
 const InstanceDetail = lazy(
   async () => import("pages/instances/InstanceDetail"),
 );
@@ -341,22 +341,6 @@ const App: FC = () => {
           }
         />
         <Route
-          path={`${ROOT_PATH}/ui/project/:project/network/:network/load-balancers/create`}
-          element={
-            <ProtectedRoute
-              outlet={<ProjectLoader outlet={<CreateLoadBalancer />} />}
-            />
-          }
-        />
-        <Route
-          path={`${ROOT_PATH}/ui/project/:project/network/:network/load-balancers/:listenAddress/edit`}
-          element={
-            <ProtectedRoute
-              outlet={<ProjectLoader outlet={<EditLoadBalancer />} />}
-            />
-          }
-        />
-        <Route
           path={`${ROOT_PATH}/ui/project/:project/network-acls`}
           element={
             <ProtectedRoute
@@ -385,6 +369,22 @@ const App: FC = () => {
           element={
             <ProtectedRoute
               outlet={<ProjectLoader outlet={<NetworkIPAM />} />}
+            />
+          }
+        />
+        <Route
+          path={`${ROOT_PATH}/ui/project/:project/network/:network/load-balancers/create`}
+          element={
+            <ProtectedRoute
+              outlet={<ProjectLoader outlet={<CreateNetworkLoadBalancer />} />}
+            />
+          }
+        />
+        <Route
+          path={`${ROOT_PATH}/ui/project/:project/network/:network/load-balancers/:listenAddress/edit`}
+          element={
+            <ProtectedRoute
+              outlet={<ProjectLoader outlet={<EditNetworkLoadBalancer />} />}
             />
           }
         />
