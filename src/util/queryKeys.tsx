@@ -35,4 +35,5 @@ export const queryKeys = {
   currentIdentity: "currentIdentity",
   peers: "peers",
   instancePreview: "instancePreview",
+  loadBalancers: "load-balancers",
 };
