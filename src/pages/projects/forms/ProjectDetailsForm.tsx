@@ -24,6 +24,7 @@ import ProfileRichChip from "pages/profiles/ProfileRichChip";
 import StoragePoolExplanationTooltip from "pages/storage/StoragePoolExplanationTooltip";
 import NetworkExplanationTooltip from "pages/networks/NetworkExplanationTooltip";
 import DsIcon from "components/DsIcon";
+import { bridgeType } from "util/networks";
 
 export const projectDetailPayload = (
   values: ProjectDetailsFormValues,
@@ -73,7 +74,9 @@ interface Props {
 
 const ProjectDetailsForm: FC<Props> = ({ formik, project, isEdit }) => {
   const { data: networks = [] } = useNetworks(project?.name || "default");
-  const managedNetworks = networks.filter((network) => network.managed);
+  const filteredNetworks = networks.filter(
+    (network) => network.managed || network.type == bridgeType,
+  );
   const isDefaultProject = formik.values.name === "default";
   const isNonEmpty = project ? !isProjectEmpty(project) : false;
   const hadFeaturesNetworkZones =
@@ -204,7 +207,7 @@ const ProjectDetailsForm: FC<Props> = ({ formik, project, isEdit }) => {
                 </NetworkExplanationTooltip>
               }
               disabled={hasNoProfiles || hasIsolatedNetworks}
-              networkList={managedNetworks}
+              networkList={filteredNetworks}
             />
           )}
           <div
