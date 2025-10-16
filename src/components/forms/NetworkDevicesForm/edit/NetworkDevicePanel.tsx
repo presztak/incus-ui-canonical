@@ -41,6 +41,7 @@ import NetworkDefaultACLSelector, {
 import type { InstanceAndProfileFormikProps } from "types/forms/instanceAndProfileFormProps";
 import type { NetworkDeviceFormValues } from "types/forms/networkDevice";
 import { useNetworkAcls } from "context/useNetworkAcls";
+import { bridgeType } from "util/networks";
 
 interface Props {
   project: string;
@@ -83,10 +84,12 @@ const NetworkDevicePanel: FC<Props> = ({
 
   const isOverride = Boolean(isCreatingOverride || isEditingOverride);
 
-  const managedNetworks = networks.filter((network) => network.managed);
+  const networkList = networks.filter(
+    (network) => network.managed || network.type == bridgeType
+  );
 
   const getNetworkAclsByNetworkName = (networkName: string) => {
-    const network = managedNetworks.find((n) => n.name === networkName);
+    const network = networkList.find((n) => n.name === networkName);
     return getNetworkAcls(network);
   };
 
@@ -125,45 +128,70 @@ const NetworkDevicePanel: FC<Props> = ({
       });
 
   const getInitialValues = (): NetworkDeviceFormValues => {
-    const defaultNetworkName = managedNetworks[0]?.name ?? "";
+    const defaultNetworkName = networkList[0]?.name ?? "";
     const defaultAcls =
       getNetworkAclsByNetworkName(defaultNetworkName).join(",");
 
     if (isCreatingLocal) {
+      const isManaged = networkList[0]?.managed ?? false;
+
+      let network = networkList[0]?.name ?? "";
+      let parent = "";
+
+      if (!isManaged) {
+        network = "";
+        parent = networkList[0]?.name ?? "";
+      }
+
       const deviceName = deduplicateName("eth", 1, existingDeviceNames);
 
       return {
         name: deviceName,
-        network: defaultNetworkName,
+        network: network,
         acls: defaultAcls,
         ipv4: "",
         ipv6: "",
+        parent: parent,
       };
     }
 
     if (isCreatingOverride) {
+      let network = inheritedDevice.network?.network || defaultNetworkName;
+      let parent = inheritedDevice.network?.parent;
+
+      if (parent) {
+        network = "";
+      }
+
       return {
         name: inheritedDevice.key,
-        network: inheritedDevice.network?.network || defaultNetworkName,
+        network: network,
         acls: combineAcls(
           getNetworkAclsByNetworkName(inheritedDevice.network?.name || ""),
           getDeviceAcls(inheritedDevice.network),
         ).join(","),
         ipv4: "",
         ipv6: "",
+        parent: parent,
       };
     }
 
-    const deviceNetworkName = device?.network || defaultNetworkName;
+    let deviceNetworkName = device?.network || device?.parent || defaultNetworkName;
 
     const combinedAcls = combineAcls(
       getNetworkAclsByNetworkName(deviceNetworkName),
       getDeviceAcls(device),
     ).join(",");
 
+    let network = device?.network || defaultNetworkName;
+
+    if (device?.parent) {
+      network = "";
+    }
+
     return {
       name: device?.name || "",
-      network: deviceNetworkName,
+      network: network,
       acls: combinedAcls,
       ipv4: device?.["ipv4.address"] || "",
       ipv6: device?.["ipv6.address"] || "",
@@ -171,6 +199,7 @@ const NetworkDevicePanel: FC<Props> = ({
         device?.["security.acls.default.egress.action"] || "",
       security_acls_default_ingress_action:
         device?.["security.acls.default.ingress.action"] || "",
+      parent: device?.parent,
     };
   };
 
@@ -181,7 +210,7 @@ const NetworkDevicePanel: FC<Props> = ({
     onSubmit: (values) => {
       const allSelectedAcls = values.acls ? values.acls.split(",") : [];
       const networkAcls = getNetworkAcls(
-        managedNetworks.find((n) => n.name === values.network),
+        networkList.find((n) => n.name === (values.network || values.parent)),
       );
       const userSelectedAcls = allSelectedAcls.filter(
         (acl) => !networkAcls.includes(acl),
@@ -199,6 +228,8 @@ const NetworkDevicePanel: FC<Props> = ({
           values.security_acls_default_egress_action || undefined,
         "security.acls.default.ingress.action":
           values.security_acls_default_ingress_action || undefined,
+        parent: values.parent,
+        nictype: values.nictype,
       };
 
       const originalDeviceName = deviceName;
@@ -228,11 +259,11 @@ const NetworkDevicePanel: FC<Props> = ({
     return "Edit network device";
   };
 
-  const selectedNetwork = managedNetworks.find(
-    (n) => n.name === formik.values.network,
+  const selectedNetwork = networkList.find(
+    (n) => n.name === (formik.values.network || formik.values.parent),
   );
 
-  const networkAcls = getNetworkAclsByNetworkName(formik.values.network);
+  const networkAcls = getNetworkAclsByNetworkName(formik.values.network || formik.values.parent);
   const allSelectedAcls = formik.values.acls
     ? formik.values.acls.split(",")
     : [];
@@ -322,7 +353,7 @@ const NetworkDevicePanel: FC<Props> = ({
             />
 
             <NetworkSelector
-              value={formik.values.network}
+              value={formik.values.network || formik.values.parent}
               setValue={(value) => {
                 void formik.setFieldValue("network", value);
 
@@ -331,8 +362,22 @@ const NetworkDevicePanel: FC<Props> = ({
 
                 void formik.setFieldValue("ipv4", "");
                 void formik.setFieldValue("ipv6", "");
+
+                const selectedNetwork = networkList.find(
+                  (t) => t.name === value,
+                );
+
+                let nicType = "";
+                let parent = "";
+                if (selectedNetwork.managed == false) {
+                  nicType = "bridged";
+                  parent = value;
+                }
+
+                formik.setFieldValue("nictype", nicType);
+                formik.setFieldValue("parent", parent);
               }}
-              networkList={managedNetworks}
+              networkList={networkList}
               id="network"
               label="Network"
               required

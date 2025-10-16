@@ -46,6 +46,21 @@ export const formDeviceToPayload = (devices: FormDevice[]) => {
           [name]: item.bare,
         };
       }
+      if (item.type === "nic") {
+        if (item.parent && item.parent != "") {
+          delete item.network;
+          return {
+            ...obj,
+            [name]: item,
+          };
+        }
+        delete item.parent;
+        delete item.nictype;
+        return {
+          ...obj,
+          [name]: item,
+        };
+      }
       if (item.type === "disk") {
         const { bare, ...rest } = item;
         item = { ...bare, ...rest };
@@ -88,6 +103,15 @@ export const parseDevices = (devices: LxdDevices): FormDevice[] => {
 
     switch (item.type) {
       case "nic":
+        if (item.parent && item.parent != "") {
+          return {
+            name: key,
+            parent: item.parent,
+            nictype: item.nictype,
+            type: "nic",
+          };
+        }
+
         return {
           name: key,
           "ipv4.address": item["ipv4.address"],
@@ -200,17 +224,30 @@ export const addNicDevice = ({
   formik,
   deviceName,
   deviceNetworkName,
+  deviceParentName,
 }: {
   formik: InstanceAndProfileFormikProps;
   deviceName: string;
   deviceNetworkName: string;
+  deviceParentName: string;
 }) => {
   const copy = [...formik.values.devices].filter((t) => t.name !== deviceName);
-  copy.push({
-    type: "nic",
-    name: deviceName,
-    network: deviceNetworkName,
-  });
+
+  if (deviceParentName != "") {
+    copy.push({
+      type: "nic",
+      name: deviceName,
+      parent: deviceParentName,
+      nictype: "bridged",
+    });
+  } else {
+    copy.push({
+      type: "nic",
+      name: deviceName,
+      network: deviceNetworkName,
+    });
+  }
+
   formik.setFieldValue("devices", copy);
   return copy.length;
 };
