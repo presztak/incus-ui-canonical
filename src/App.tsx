@@ -9,11 +9,7 @@ import NoMatch from "components/NoMatch";
 import { isBearerAuthError, logout, logoutBearerToken, logoutOidc } from "util/helpers";
 import { ROOT_PATH } from "util/rootPath";
 import lazy from "util/lazyWithRetry";
-import {
-  applyTheme,
-  loadTheme,
-  Spinner,
-} from "@canonical/react-components";
+import { applyTheme, loadTheme, Spinner } from "@canonical/react-components";
 import { ALL_PROJECTS } from "util/loginProject";
 import { AUTH_METHOD } from "util/authentication";
 
@@ -58,6 +54,7 @@ const EditNetworkLoadBalancer = lazy(
   async () => import("pages/networks/EditNetworkLoadBalancer"),
 );
 const ImageList = lazy(async () => import("pages/images/ImageList"));
+const IncusOS = lazy(async () => import("pages/os/IncusOS"));
 const InstanceDetail = lazy(
   async () => import("pages/instances/InstanceDetail"),
 );
@@ -542,6 +539,18 @@ const App: FC = () => {
           element={<ProtectedRoute outlet={<Settings />} />}
         />
         <Route path={`${ROOT_PATH}/ui/login`} element={<Login />} />
+        <Route
+          path={`${ROOT_PATH}/ui/os`}
+          element={<ProtectedRoute outlet={<IncusOS />} />}
+        />
+        <Route
+          path={`${ROOT_PATH}/ui/os/:activeTab/`}
+          element={<ProtectedRoute outlet={<IncusOS />} />}
+        />
+        <Route
+          path={`${ROOT_PATH}/ui/os/:activeTab/:itemName`}
+          element={<ProtectedRoute outlet={<IncusOS />} />}
+        />
         <Route
           path={`${ROOT_PATH}/ui/login/certificate-generate`}
           element={<CertificateGenerate />}
