@@ -26,7 +26,6 @@ import { updateMaxHeight } from "util/updateMaxHeight";
 import type { LxdStoragePool } from "types/storage";
 import {
   alletraDriver,
-  btrfsDriver,
   cephDriver,
   cephFSDriver,
   cephObject,
@@ -183,7 +182,7 @@ export const toStoragePool = (
     config: {
       ...missingConfigFields,
       ...getConfig(),
-      source: values.driver !== btrfsDriver ? values.source : undefined,
+      source: values.source,
     },
   };
 };
