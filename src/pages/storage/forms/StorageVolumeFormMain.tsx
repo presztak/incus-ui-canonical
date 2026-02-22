@@ -32,6 +32,7 @@ interface Props {
   clusterMembers?: LxdClusterMember[];
   pools?: LxdStoragePool[];
   settings?: LxdSettings;
+  project: string;
 }
 
 const StorageVolumeFormMain: FC<Props> = ({
@@ -40,6 +41,7 @@ const StorageVolumeFormMain: FC<Props> = ({
   clusterMembers = [],
   pools = [],
   settings,
+  project,
 }) => {
   const pool = pools.find((item) => item.name === formik.values.pool);
   const poolDriver = pool?.driver;
@@ -76,6 +78,7 @@ const StorageVolumeFormMain: FC<Props> = ({
                   id: "storage-pool-selector-volume",
                   error: poolError,
                 }}
+                project={project}
               />
             </>
           ) : (

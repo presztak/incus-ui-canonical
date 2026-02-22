@@ -30,11 +30,12 @@ export const useStoragePool = (
 
 export const useStoragePools = (
   enabled?: boolean,
+  project?: string,
 ): UseQueryResult<LxdStoragePool[]> => {
   const { isFineGrained } = useAuth();
   return useQuery({
-    queryKey: [queryKeys.storage],
-    queryFn: async () => fetchStoragePools(isFineGrained),
+    queryKey: [queryKeys.storage, project],
+    queryFn: async () => fetchStoragePools(isFineGrained, project),
     enabled: (enabled ?? true) && isFineGrained !== null,
   });
 };
