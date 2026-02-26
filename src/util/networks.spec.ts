@@ -335,7 +335,7 @@ const iface = (hwaddr: string, addresses: string[], type = "broadcast") => ({
     address,
     family: address.includes(":") ? "inet6" : "inet",
     netmask: "",
-    scope: address.includes(":") ? "link" : "global",
+    scope: address.startsWith("fe80:") || address === "::1" ? "link" : "global",
   })),
 });
 
@@ -407,16 +407,13 @@ describe("getIpAddresses", () => {
     expect(result[0].iface).toBe("enp5s0");
   });
 
-  it("ranks the global address first and the nic device link local next", () => {
+  it("only reports global addresses", () => {
     const instance = createInstance(kube1Config, kube1Network);
 
     const result = getIpAddresses(instance, "inet6");
 
     expect(result.map((item) => item.address)).toEqual([
       "2a02:a455:3cc4:400:216:3eff:fe02:7386",
-      "fe80::216:3eff:fe02:7386",
-      "fe80::6092:d8ff:fe02:ec78",
-      "fe80::d0d9:a5ff:fe06:6cfb",
     ]);
   });
 
