@@ -537,7 +537,6 @@ const Navigation: FC = () => {
                         <NavAccordion
                           baseUrls={[
                             `${ROOT_PATH}/ui/cluster`,
-                            `${ROOT_PATH}/ui/project/${encodeURIComponent(projectName)}/placement-groups`,
                             `${ROOT_PATH}/ui/project/${encodeURIComponent(projectName)}/replicator/`,
                           ]}
                           title={getNavTitle("clustering")}
@@ -601,16 +600,6 @@ const Navigation: FC = () => {
                                   </SideNavigationItem>,
                                 ]
                               : []),
-                            <SideNavigationItem key="placement">
-                              <NavLink
-                                to={`${ROOT_PATH}/ui/project/${encodeURIComponent(projectName)}/placement-groups`}
-                                title={`Placement groups (${projectName})`}
-                                onClick={softToggleMenu}
-                                className="accordion-nav-secondary"
-                              >
-                                Placement groups
-                              </NavLink>
-                            </SideNavigationItem>,
                             ...(hasReplicators
                               ? [
                                   <SideNavigationItem key="replicators">
