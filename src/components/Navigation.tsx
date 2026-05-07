@@ -520,16 +520,6 @@ const Navigation: FC = () => {
                                   Groups
                                 </NavLink>
                               </SideNavigationItem>,
-                              <SideNavigationItem key="placement">
-                                <NavLink
-                                  to={`${ROOT_PATH}/ui/project/${encodeURIComponent(projectName)}/placement-groups`}
-                                  title={`Placement groups (${projectName})`}
-                                  onClick={softToggleMenu}
-                                  className="accordion-nav-secondary"
-                                >
-                                  Placement
-                                </NavLink>
-                              </SideNavigationItem>,
                             ]}
                           </NavAccordion>
                         </SideNavigationItem>

@@ -84,16 +84,6 @@ const EditInstanceDetails: FC<Props> = ({ formik, project }) => {
               disabled={true}
               help="Use the migrate button in the header to move the instance to another cluster member"
             />
-            <PlacementGroupSelect
-              value={formik.values.placement_group}
-              setValue={(value) => {
-                ensureEditMode(formik);
-                formik.setFieldValue("placement_group", value || undefined);
-              }}
-              project={project}
-              profileNames={formik.values.profiles}
-              hasNoneOption
-            />
           </Col>
         </Row>
       )}
