@@ -51,6 +51,7 @@ import {
   IPV6,
   MEMORY,
   NAME,
+  OS_NAME,
   PROJECT,
   SIZE_HIDEABLE_COLUMNS,
   SNAPSHOTS,
@@ -82,7 +83,11 @@ import { useCurrentProject } from "context/useCurrentProject";
 import { useIsClustered } from "context/useIsClustered";
 import { useProject } from "context/useProjects";
 import { getTypeFromDisplayName } from "util/images";
-import { getInstanceKey, getInstanceType } from "util/instances";
+import {
+  getInstanceKey,
+  getInstanceOSName,
+  getInstanceType,
+} from "util/instances";
 import InstanceCreationProgress from "components/InstanceCreationProgress";
 import TruncatedList from "components/TruncatedList";
 import ClusterMemberRichChip from "pages/cluster/ClusterMemberRichChip";
@@ -323,6 +328,10 @@ const InstanceList: FC = () => {
       style: { width: `${COLUMN_WIDTHS[STATUS]}px` },
     },
     {
+      content: OS_NAME,
+      style: { width: `${COLUMN_WIDTHS[OS_NAME]}px` },
+    },
+    {
       "aria-label": "Actions",
       className: classnames({ "u-hide": panelParams.instance }),
       style: { width: `${COLUMN_WIDTHS[ACTIONS]}px` },
@@ -535,6 +544,14 @@ const InstanceList: FC = () => {
             "aria-label": STATUS,
             onClick: openSummary,
             style: { width: `${COLUMN_WIDTHS[STATUS]}px` },
+          },
+          {
+            content: getInstanceOSName(instance),
+            role: "cell",
+            className: "clickable-cell",
+            "aria-label": "OS",
+            onClick: openSummary,
+            style: { width: `${COLUMN_WIDTHS[OS_NAME]}px` },
           },
           {
             content: (
