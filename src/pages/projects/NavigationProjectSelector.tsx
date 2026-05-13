@@ -8,6 +8,7 @@ import { useProjects } from "context/useProjects";
 import { useServerEntitlements } from "util/entitlements/server";
 import { getAllProjectsSwitchTarget } from "util/projects";
 import DsIcon from "components/DsIcon";
+import { isAdmin } from "util/permissions";
 
 interface Props {
   activeProject: string;
@@ -83,9 +84,9 @@ const NavigationProjectSelector: FC<Props> = ({
             }}
             className="p-contextual-menu__link"
             hasIcon
-            disabled={!canCreateProjects()}
+            disabled={!isAdmin()}
             title={
-              canCreateProjects()
+              isAdmin()
                 ? ""
                 : "You do not have permission to create projects"
             }
