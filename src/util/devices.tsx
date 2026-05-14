@@ -115,6 +115,7 @@ export const isCustomNic = (device: LxdDeviceValue): boolean => {
     "security.acls.default.ingress.action",
     "parent",
     "nictype",
+    "hwaddr",
   ];
   return (
     isNicDevice(device) &&
