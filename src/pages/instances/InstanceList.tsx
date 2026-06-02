@@ -2,7 +2,6 @@ import { useEffect, useState, type FC } from "react";
 import {
   Button,
   Col,
-  ColumnSelector,
   CustomLayout,
   EmptyState,
   Icon,
@@ -24,6 +23,7 @@ import classnames from "classnames";
 import InstanceStateActions from "pages/instances/actions/InstanceStateActions";
 import { useInstanceLoading } from "context/instanceLoading";
 import InstanceLink from "pages/instances/InstanceLink";
+import ColumnSelector from "components/ColumnSelector";
 import SelectableMainTable from "components/SelectableMainTable";
 import InstanceBulkActions from "pages/instances/actions/InstanceBulkActions";
 import { getIpAddresses, sortIpv6Addresses } from "util/networks";
@@ -43,6 +43,7 @@ import type {
   MainTableRow,
 } from "@canonical/react-components/dist/components/MainTable/MainTable";
 import {
+  ALL_COLUMNS,
   ACTIONS,
   CLUSTER_MEMBER,
   COLUMN_WIDTHS,
@@ -81,10 +82,13 @@ import InstanceUsageRootFilesystem from "pages/instances/InstanceUsageRootFilesy
 import { useInstances } from "context/useInstances";
 import { useProjectEntitlements } from "util/entitlements/projects";
 import { useCurrentProject } from "context/useCurrentProject";
-import { useIsClustered } from "context/useIsClustered";
 import { useProject } from "context/useProjects";
 import { getTypeFromDisplayName } from "util/images";
-import { getInstanceKey, getInstanceOSName, getInstanceType } from "util/instances";
+import {
+  getInstanceKey,
+  getInstanceOSName,
+  getInstanceType,
+} from "util/instances";
 import DocLink from "components/DocLink";
 import TruncatedList from "components/TruncatedList";
 import ClusterMemberRichChip from "pages/cluster/ClusterMemberRichChip";
@@ -102,8 +106,17 @@ const loadHidden = () => {
     : [MEMORY, FILESYSTEM];
 };
 
+const loadOrderedColumns = () => {
+  const saved = localStorage.getItem("instanceListOrderedColumns");
+  return saved ? (JSON.parse(saved) as string[]) : ALL_COLUMNS;
+};
+
 const saveHidden = (columns: string[]) => {
   localStorage.setItem("instanceListHiddenColumns", JSON.stringify(columns));
+};
+
+const saveOrdered = (columns: string[]) => {
+  localStorage.setItem("instanceListOrderedColumns", JSON.stringify(columns));
 };
 
 const InstanceList: FC = () => {
@@ -137,6 +150,8 @@ const InstanceList: FC = () => {
   const [processingNames, setProcessingNames] = useState<string[]>([]);
   const isSmallScreen = useIsScreenBelow();
   const isMediumScreen = useIsScreenBelow(mediumScreenBreakpoint);
+  const [orderedColumns, setOrderedColumns] =
+    useState<string[]>(loadOrderedColumns());
 
   if (!project && !isAllProjects) {
     return <>Missing project</>;
@@ -188,6 +203,32 @@ const InstanceList: FC = () => {
   const setHidden = (columns: string[]) => {
     setUserHidden(columns);
     saveHidden(columns);
+  };
+
+  const setColumnOrder = (columns: string) => {
+    const newOrder = [...columns];
+    for (let i = 0; i < ALL_COLUMNS.length; i++) {
+      if (newOrder.includes(orderedColumns[i])) {
+        continue;
+      }
+
+      newOrder.push(orderedColumns[i]);
+    }
+
+    setOrderedColumns(newOrder);
+    saveOrdered(newOrder);
+  };
+
+  const isValidOrderedColumn = (column: string): boolean => {
+    if (!isAllProjects && column === PROJECT) {
+      return false;
+    }
+
+    if (!isClustered && column === CLUSTER_MEMBER) {
+      return false;
+    }
+
+    return true;
   };
 
   const { data: operationList, error: operationError } = useQuery({
@@ -256,80 +297,87 @@ const InstanceList: FC = () => {
     }
   }, [instances]);
 
-  const headers: MainTableHeader[] = [
-    {
-      content: NAME,
-      sortKey: "name",
-      style: { width: `${COLUMN_WIDTHS[NAME]}px` },
-    },
-    {
-      content: TYPE,
-      sortKey: "type",
-      style: { width: `${COLUMN_WIDTHS[TYPE]}px` },
-    },
-    ...(isAllProjects
-      ? [
-          {
-            content: PROJECT,
-            sortKey: "project",
-            style: { width: `${COLUMN_WIDTHS[PROJECT]}px` },
-          },
-        ]
-      : []),
-    ...(isClustered
-      ? [
-          {
-            content: CLUSTER_MEMBER,
-            sortKey: "member",
-            style: { width: `${COLUMN_WIDTHS[CLUSTER_MEMBER]}px` },
-          },
-        ]
-      : []),
-    {
-      content: MEMORY,
-      style: { width: `${COLUMN_WIDTHS[MEMORY]}px` },
-    },
-    {
-      content: FILESYSTEM,
-      style: { width: `${COLUMN_WIDTHS[FILESYSTEM]}px` },
-    },
-    {
-      content: DESCRIPTION,
-      sortKey: "description",
-      style: { width: `${COLUMN_WIDTHS[DESCRIPTION]}px` },
-    },
-    {
-      content: IPV4,
-      className: "u-align--right",
-      style: { width: `${COLUMN_WIDTHS[IPV4]}px` },
-    },
-    {
-      content: IPV6,
-      id: "header-ipv6",
-      style: { width: `${COLUMN_WIDTHS[IPV6]}px` },
-    },
-    {
-      content: SNAPSHOTS,
-      sortKey: "snapshots",
-      className: "u-align--right",
-      style: { width: `${COLUMN_WIDTHS[SNAPSHOTS]}px` },
-    },
-    {
-      content: STATUS,
-      sortKey: "status",
-      className: "status-header status",
-      style: { width: `${COLUMN_WIDTHS[STATUS]}px` },
-    },
-    {
-      content: OS_NAME,
-      style: { width: `${COLUMN_WIDTHS[OS_NAME]}px` },
-    },
-    {
-      "aria-label": "Actions",
-      className: classnames({ "u-hide": panelParams.instance }),
-      style: { width: `${COLUMN_WIDTHS[ACTIONS]}px` },
-    },
-  ];
+  const getInstanceHeaders = (): MainTableHeader[] => {
+    const headers = {
+      [NAME]: {
+        content: NAME,
+        sortKey: "name",
+        style: { width: `${COLUMN_WIDTHS[NAME]}px` },
+      },
+      [TYPE]: {
+        content: TYPE,
+        sortKey: "type",
+        style: { width: `${COLUMN_WIDTHS[TYPE]}px` },
+      },
+      [PROJECT]: {
+        content: PROJECT,
+        sortKey: "project",
+        style: { width: `${COLUMN_WIDTHS[PROJECT]}px` },
+      },
+      [CLUSTER_MEMBER]: {
+        content: CLUSTER_MEMBER,
+        sortKey: "member",
+        style: { width: `${COLUMN_WIDTHS[CLUSTER_MEMBER]}px` },
+      },
+      [MEMORY]: {
+        content: MEMORY,
+        style: { width: `${COLUMN_WIDTHS[MEMORY]}px` },
+      },
+      [FILESYSTEM]: {
+        content: FILESYSTEM,
+        style: { width: `${COLUMN_WIDTHS[FILESYSTEM]}px` },
+      },
+      [DESCRIPTION]: {
+        content: DESCRIPTION,
+        sortKey: "description",
+        style: { width: `${COLUMN_WIDTHS[DESCRIPTION]}px` },
+      },
+      [IPV4]: {
+        content: IPV4,
+        className: "u-align--right",
+        style: { width: `${COLUMN_WIDTHS[IPV4]}px` },
+      },
+      [IPV6]: {
+        content: IPV6,
+        id: "header-ipv6",
+        style: { width: `${COLUMN_WIDTHS[IPV6]}px` },
+      },
+      [SNAPSHOTS]: {
+        content: SNAPSHOTS,
+        sortKey: "snapshots",
+        className: "u-align--right",
+        style: { width: `${COLUMN_WIDTHS[SNAPSHOTS]}px` },
+      },
+      [STATUS]: {
+        content: STATUS,
+        sortKey: "status",
+        className: "status-header status",
+        style: { width: `${COLUMN_WIDTHS[STATUS]}px` },
+      },
+      [OS_NAME]: {
+        content: OS_NAME,
+        style: { width: `${COLUMN_WIDTHS[OS_NAME]}px` },
+      },
+      [ACTIONS]: {
+        "aria-label": "Actions",
+        className: classnames({ "u-hide": panelParams.instance }),
+        style: { width: `${COLUMN_WIDTHS[ACTIONS]}px` },
+      },
+    };
+
+    const result: MainTableHeader[] = [];
+    for (let i = 0; i < orderedColumns.length; i++) {
+      if (!isValidOrderedColumn(orderedColumns[i])) {
+        continue;
+      }
+
+      result.push(headers[orderedColumns[i]]);
+    }
+
+    return result;
+  };
+
+  const headers: MainTableHeader[] = getInstanceHeaders();
 
   const visibleHeaders = visibleHeaderColumns(
     headers,
@@ -426,12 +474,9 @@ const InstanceList: FC = () => {
         panelParams.instance === instance.name &&
         panelParams.project === instance.project;
 
-      return {
-        key: getInstanceKey(instance),
-        className: hasActivePanel ? "u-row-selected" : "u-row",
-        name: getInstanceKey(instance),
-        columns: [
-          {
+      const getColumns = () => {
+        const columns = {
+          [NAME]: {
             content: <InstanceLink instance={instance} />,
             className: "u-truncate",
             title: `Instance ${instance.name}`,
@@ -440,7 +485,7 @@ const InstanceList: FC = () => {
             "aria-label": NAME,
             onClick: openSummary,
           },
-          {
+          [TYPE]: {
             content: getInstanceType(instance),
             role: "cell",
             "aria-label": TYPE,
@@ -448,34 +493,26 @@ const InstanceList: FC = () => {
             className: "clickable-cell",
             style: { width: `${COLUMN_WIDTHS[TYPE]}px` },
           },
-          ...(isAllProjects
-            ? [
-                {
-                  content: (
-                    <ProjectRichChip
-                      projectName={instance.project}
-                      urlSuffix="/instances"
-                    />
-                  ),
-                  role: "cell",
-                  "aria-label": PROJECT,
-                  style: { width: `${COLUMN_WIDTHS[PROJECT]}px` },
-                },
-              ]
-            : []),
-          ...(isClustered
-            ? [
-                {
-                  content: (
-                    <ClusterMemberRichChip clusterMember={instance.location} />
-                  ),
-                  role: "cell",
-                  "aria-label": CLUSTER_MEMBER,
-                  style: { width: `${COLUMN_WIDTHS[CLUSTER_MEMBER]}px` },
-                },
-              ]
-            : []),
-          {
+          [PROJECT]: {
+            content: (
+              <ProjectRichChip
+                projectName={instance.project}
+                urlSuffix="/instances"
+              />
+            ),
+            role: "cell",
+            "aria-label": PROJECT,
+            style: { width: `${COLUMN_WIDTHS[PROJECT]}px` },
+          },
+          [CLUSTER_MEMBER]: {
+            content: (
+              <ClusterMemberRichChip clusterMember={instance.location} />
+            ),
+            role: "cell",
+            "aria-label": CLUSTER_MEMBER,
+            style: { width: `${COLUMN_WIDTHS[CLUSTER_MEMBER]}px` },
+          },
+          [MEMORY]: {
             content: <InstanceUsageMainMemory instance={instance} />,
             role: "cell",
             "aria-label": MEMORY,
@@ -483,7 +520,7 @@ const InstanceList: FC = () => {
             className: "clickable-cell",
             style: { width: `${COLUMN_WIDTHS[MEMORY]}px` },
           },
-          {
+          [FILESYSTEM]: {
             content: <InstanceUsageRootFilesystem instance={instance} />,
             role: "cell",
             "aria-label": FILESYSTEM,
@@ -491,7 +528,7 @@ const InstanceList: FC = () => {
             className: "clickable-cell",
             style: { width: `${COLUMN_WIDTHS[FILESYSTEM]}px` },
           },
-          {
+          [DESCRIPTION]: {
             content: (
               <div className="u-truncate" title={instance.description}>
                 {instance.description}
@@ -503,7 +540,7 @@ const InstanceList: FC = () => {
             className: "clickable-cell",
             style: { width: `${COLUMN_WIDTHS[DESCRIPTION]}px` },
           },
-          {
+          [IPV4]: {
             key: `ipv4-${ipv4.length}`,
             content: <TruncatedList items={ipv4.map((val) => val.address)} />,
             role: "cell",
@@ -512,7 +549,7 @@ const InstanceList: FC = () => {
             onClick: openSummary,
             style: { width: `${COLUMN_WIDTHS[IPV4]}px` },
           },
-          {
+          [IPV6]: {
             key: `ipv6-${ipv6.length}`,
             content: <TruncatedList items={ipv6.map((val) => val.address)} />,
             role: "cell",
@@ -521,7 +558,7 @@ const InstanceList: FC = () => {
             className: "clickable-cell",
             style: { width: `${COLUMN_WIDTHS[IPV6]}px` },
           },
-          {
+          [SNAPSHOTS]: {
             content: instance.snapshots?.length ?? "0",
             role: "cell",
             className: "u-align--right clickable-cell",
@@ -529,7 +566,7 @@ const InstanceList: FC = () => {
             onClick: openSummary,
             style: { width: `${COLUMN_WIDTHS[SNAPSHOTS]}px` },
           },
-          {
+          [STATUS]: {
             key: instance.status + loadingType,
             content: <InstanceStatusIcon instance={instance} />,
             role: "cell",
@@ -538,7 +575,7 @@ const InstanceList: FC = () => {
             onClick: openSummary,
             style: { width: `${COLUMN_WIDTHS[STATUS]}px` },
           },
-          {
+          [OS_NAME]: {
             content: getInstanceOSName(instance),
             role: "cell",
             className: "clickable-cell",
@@ -546,7 +583,7 @@ const InstanceList: FC = () => {
             onClick: openSummary,
             style: { width: `${COLUMN_WIDTHS[OS_NAME]}px` },
           },
-          {
+          [ACTIONS]: {
             content: (
               <InstanceStateActions
                 className={classnames(
@@ -563,7 +600,25 @@ const InstanceList: FC = () => {
             "aria-label": "Actions",
             style: { width: `${COLUMN_WIDTHS[ACTIONS]}px` },
           },
-        ],
+        };
+
+        const result = [];
+        for (let i = 0; i < orderedColumns.length; i++) {
+          if (!isValidOrderedColumn(orderedColumns[i])) {
+            continue;
+          }
+
+          result.push(columns[orderedColumns[i]]);
+        }
+
+        return result;
+      };
+
+      return {
+        key: getInstanceKey(instance),
+        className: hasActivePanel ? "u-row-selected" : "u-row",
+        name: getInstanceKey(instance),
+        columns: getColumns(),
         sortData: {
           name: instance.name.toLowerCase(),
           member: instance.location,
@@ -743,15 +798,26 @@ const InstanceList: FC = () => {
                     }
                   >
                     <ColumnSelector
-                      columns={USER_HIDEABLE_COLUMNS.filter((column) => {
+                      columns={orderedColumns.filter((column) => {
                         if (column === CLUSTER_MEMBER && !isClustered) {
                           return false;
                         }
+
+                        if (column === PROJECT && !isAllProjects) {
+                          return false;
+                        }
+
+                        if (column === ACTIONS) {
+                          return false;
+                        }
+
                         return true;
                       })}
+                      hideableColumns={USER_HIDEABLE_COLUMNS}
                       userHidden={userHidden}
                       sizeHidden={sizeHidden}
                       setUserHidden={setHidden}
+                      setColumnOrder={setColumnOrder}
                       className={classnames({
                         "u-hide": panelParams.instance,
                       })}
