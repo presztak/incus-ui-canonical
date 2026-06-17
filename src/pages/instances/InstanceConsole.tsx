@@ -17,13 +17,13 @@ import { useInstanceStart } from "util/instanceStart";
 import AttachIsoBtn from "pages/instances/actions/AttachIsoBtn";
 import NotificationRow from "components/NotificationRow";
 import ConsoleConfirmation from "components/forms/ConsoleConfirmation";
-import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useInstanceEntitlements } from "util/entitlements/instances";
 import { isInstanceRunning } from "util/instanceStatus";
 import InstanceConsoleShortcuts from "pages/instances/InstanceConsoleShortcuts";
 import DsIcon from "components/DsIcon";
 import { useOperations } from "context/operationsProvider";
 import { getInstanceName, getProjectName, findOperation } from "util/operations";
+import { useIsMinimalConsole } from "util/minimalConsole";
 
 interface Props {
   instance: LxdInstance;
@@ -32,6 +32,7 @@ interface Props {
 const InstanceConsole: FC<Props> = ({ instance }) => {
   const notify = useNotify();
   const isVm = instance.type === "virtual-machine";
+  const isMinimalConsole = useIsMinimalConsole();
   const [isGraphic, setGraphic] = useState(isVm);
   const { canUpdateInstanceState, canAccessInstanceConsole } =
     useInstanceEntitlements();
@@ -208,7 +209,9 @@ const InstanceConsole: FC<Props> = ({ instance }) => {
               <DsIcon icon="connected" />
               <span>Reconnect</span>
             </Button>}
-            {isGraphic && <AttachIsoBtn instance={instance} />}
+            {isGraphic && !isMinimalConsole && (
+              <AttachIsoBtn instance={instance} />
+            )}
             {isGraphic && (
               <>
                 <Button
