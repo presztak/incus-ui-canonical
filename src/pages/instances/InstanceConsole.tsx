@@ -24,6 +24,7 @@ import { isInstanceRunning } from "util/instanceStatus";
 import InstanceConsoleShortcuts from "pages/instances/InstanceConsoleShortcuts";
 import { useOperations } from "context/operationsProvider";
 import { getInstanceName, getProjectName, findOperation } from "util/operations";
+import { useIsMinimalConsole } from "util/minimalConsole";
 
 interface Props {
   instance: LxdInstance;
@@ -32,6 +33,7 @@ interface Props {
 const InstanceConsole: FC<Props> = ({ instance }) => {
   const notify = useNotify();
   const isVm = instance.type === "virtual-machine";
+  const isMinimalConsole = useIsMinimalConsole();
   const [isGraphic, setGraphic] = useState(isVm);
   const { hasCustomVolumeIso } = useSupportedFeatures();
   const { canUpdateInstanceState, canAccessInstanceConsole } =
@@ -209,7 +211,7 @@ const InstanceConsole: FC<Props> = ({ instance }) => {
               <Icon name="connected" />
               <span>Reconnect</span>
             </Button>}
-            {isGraphic && hasCustomVolumeIso && <AttachIsoBtn instance={instance} />}
+            {isGraphic && hasCustomVolumeIso && !isMinimalConsole && <AttachIsoBtn instance={instance} />}
             {isGraphic && (
               <>
                 <Button
