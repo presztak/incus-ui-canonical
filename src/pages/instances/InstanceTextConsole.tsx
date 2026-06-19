@@ -19,12 +19,14 @@ import { useMounted } from "context/useMounted";
 
 interface Props {
   instance: LxdInstance;
+  force: boolean;
   onFailure: (title: string, e: unknown, message?: string) => void;
   showNotRunningInfo: () => void;
 }
 
 const InstanceTextConsole: FC<Props> = ({
   instance,
+  force,
   onFailure,
   showNotRunningInfo,
 }) => {
@@ -76,7 +78,7 @@ const InstanceTextConsole: FC<Props> = ({
     fetchInstanceConsoleBuffer(name, project)
       .then(setTextBuffer)
       .catch(console.error);
-    const result = await connectInstanceConsole(name, project).catch((e) => {
+    const result = await connectInstanceConsole(name, project, force).catch((e) => {
       setLoading(false);
       if (isRunning) {
         onFailure("Connection failed", e);
