@@ -6,22 +6,21 @@ import type { TabLink } from "@canonical/react-components/dist/components/Tabs/T
 import TabLinks from "components/TabLinks";
 import { useClusterMembers } from "context/useClusterMembers";
 import OSOverview from "./OSOverview";
-import OSLogs from "./OSLogs";
-import OSNetwork from "./OSNetwork";
-import OSSecurity from "./OSSecurity";
+import OSApplications from "./OSApplications";
+import OSApplicationDetails from "./OSApplicationDetails";
+import OSDebug from "./OSDebug";
 import OSServices from "./OSServices";
 import OSServiceDetails from "./OSServiceDetails";
-import OSStorage from "./OSStorage";
+import OSSystem from "./OSSystem";
 import ClusterMemberSelector from "pages/cluster/ClusterMemberSelector";
 import OSActions from "pages/os/actions/OSActions";
 
 const tabs: string[] = [
   "Overview",
-  "Logs",
-  "Network",
-  "Storage",
-  "Security",
+  "Applications",
+  "Debug",
   "Services",
+  "System",
 ];
 
 const IncusOS: FC = () => {
@@ -67,27 +66,21 @@ const IncusOS: FC = () => {
           </div>
         )}
 
-        {activeTab === "logs" && (
-          <div role="tabpanel" aria-labelledby="logs">
-            <OSLogs target={currentMember} />
+        {activeTab === "applications" && !itemName && (
+          <div role="tabpanel" aria-labelledby="applications">
+            <OSApplications target={currentMember} />
           </div>
         )}
 
-        {activeTab === "network" && (
-          <div role="tabpanel" aria-labelledby="network">
-            <OSNetwork target={currentMember} />
+        {activeTab === "applications" && itemName && (
+          <div role="tabpanel" aria-labelledby="applications">
+            <OSApplicationDetails name={itemName} target={currentMember} />
           </div>
         )}
 
-        {activeTab === "storage" && (
-          <div role="tabpanel" aria-labelledby="storage">
-            <OSStorage target={currentMember} />
-          </div>
-        )}
-
-        {activeTab === "security" && (
-          <div role="tabpanel" aria-labelledby="security">
-            <OSSecurity target={currentMember} />
+        {activeTab === "debug" && (
+          <div role="tabpanel" aria-labelledby="debug">
+            <OSDebug subTab={itemName} target={currentMember} />
           </div>
         )}
 
@@ -100,6 +93,12 @@ const IncusOS: FC = () => {
         {activeTab === "services" && itemName && (
           <div role="tabpanel" aria-labelledby="services">
             <OSServiceDetails name={itemName} target={currentMember} />
+          </div>
+        )}
+
+        {activeTab === "system" && (
+          <div role="tabpanel" aria-labelledby="system">
+            <OSSystem subTab={itemName} target={currentMember} />
           </div>
         )}
       </Row>

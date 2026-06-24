@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import {
+  List,
   MainTable,
   ScrollableTable,
   Spinner,
@@ -8,8 +9,9 @@ import {
 } from "@canonical/react-components";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchOSServices } from "api/os";
+import { fetchOSServices, runOSAction } from "api/os";
 import NotificationRow from "components/NotificationRow";
+import OSActionButton from "pages/os/actions/OSActionButton";
 import { nameFromURL } from "util/os";
 import { queryKeys } from "util/queryKeys";
 import useSortTableData from "util/useSortTableData";
@@ -34,6 +36,10 @@ const OSServices: FC<Props> = ({ target }) => {
     {
       content: "Name",
       className: "name",
+    },
+    {
+      content: "Actions",
+      className: "actions u-align--right",
     },
   ];
 
@@ -64,6 +70,29 @@ const OSServices: FC<Props> = ({ target }) => {
             role: "rowheader",
             "aria-label": "Name",
             className: "name",
+          },
+          {
+            content: (
+              <List
+                inline
+                className="actions-list u-no-margin--bottom"
+                items={[
+                  <OSActionButton
+                    key="reset"
+                    label="Reset service"
+                    mode="confirm"
+                    icon="restart"
+                    confirmMessage={`Reset the ${serviceName} service?`}
+                    run={() =>
+                      runOSAction(`services/${serviceName}`, "reset", target)
+                    }
+                    successMessage={`Service ${serviceName} reset`}
+                  />,
+                ]}
+              />
+            ),
+            "aria-label": "Actions",
+            className: "actions u-align--right",
           },
         ],
         sortData: {
