@@ -201,6 +201,9 @@ const ImageSelector: FC<Props> = ({ onSelect, onClose }) => {
         if (item.server === linuxContainersServer) {
           source = "Linux Containers";
         }
+        if (item.serverName) {
+          source = item.serverName;
+        }
         return source;
       };
 

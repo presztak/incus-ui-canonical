@@ -16,6 +16,8 @@ import SettingFormCheckbox from "./SettingFormCheckbox";
 import SettingFormInput from "./SettingFormInput";
 import SettingFormPassword from "./SettingFormPassword";
 import LoginProjectSelect from "./LoginProjectSelect";
+import ImageServersForm from "./ImageServersForm";
+import { IMAGE_SERVERS_KEY } from "util/imageServers";
 import ResourceLabel from "components/ResourceLabel";
 import { useServerEntitlements } from "util/entitlements/server";
 import ClusteredSettingFormInput from "./ClusteredSettingFormInput";
@@ -52,6 +54,7 @@ const SettingForm: FC<Props> = ({
   const isClusteredInput = isClustered && configField.scope === "local";
   const isThemeSelector = configField.key === "user.ui_theme";
   const isLoginProjectSelector = configField.key === "user.ui_login_project";
+  const isImageServers = configField.key === IMAGE_SERVERS_KEY;
 
   const settingLabel = (
     <ResourceLabel bold type="setting" value={configField.key} />
@@ -138,6 +141,14 @@ const SettingForm: FC<Props> = ({
     return (
       <div ref={editRef}>
         <LoginProjectSelect configField={configField} />
+      </div>
+    );
+  }
+
+  if (isImageServers) {
+    return (
+      <div ref={editRef}>
+        <ImageServersForm configField={configField} value={value} />
       </div>
     );
   }
