@@ -1,7 +1,9 @@
 import type { FC } from "react";
-import { Spinner, useNotify } from "@canonical/react-components";
+import { useState } from "react";
+import { Button, Input, Spinner, useNotify } from "@canonical/react-components";
 import { useQuery } from "@tanstack/react-query";
 import { fetchDebugLogs } from "api/os";
+import type { DebugLogOptions } from "api/os";
 import NotificationRow from "components/NotificationRow";
 import type { IncusOSLog } from "types/os";
 import { queryKeys } from "util/queryKeys";
@@ -51,18 +53,29 @@ interface Props {
   target: string;
 }
 
-const OSLogs: FC<Props> = ({ target }) => {
+const OSDebugLog: FC<Props> = ({ target }) => {
   const notify = useNotify();
-  const entriesLimit = 200;
+  const [unit, setUnit] = useState("");
+  const [boot, setBoot] = useState("");
+  const [entries, setEntries] = useState("200");
+  const [filters, setFilters] = useState<DebugLogOptions>({ entries: 200 });
 
   const {
     data: logs = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: [queryKeys.osDebugLogs, target],
-    queryFn: async () => fetchDebugLogs(target, entriesLimit),
+    queryKey: [queryKeys.osDebugLogs, target, filters],
+    queryFn: async () => fetchDebugLogs(target, filters),
   });
+
+  const applyFilters = () => {
+    setFilters({
+      unit: unit,
+      boot: boot,
+      entries: entries ? Number(entries) : undefined,
+    });
+  };
 
   if (error) {
     notify.failure("Loading logs failed", error);
@@ -71,6 +84,36 @@ const OSLogs: FC<Props> = ({ target }) => {
   return (
     <>
       <NotificationRow />
+      <form
+        className="incusos-log-filters"
+        onSubmit={(e) => {
+          e.preventDefault();
+          applyFilters();
+        }}
+      >
+        <Input
+          type="text"
+          label="Unit"
+          value={unit}
+          onChange={(e) => setUnit(e.target.value)}
+        />
+        <Input
+          type="text"
+          label="Boot"
+          value={boot}
+          onChange={(e) => setBoot(e.target.value)}
+        />
+        <Input
+          type="number"
+          label="Entries"
+          value={entries}
+          onChange={(e) => setEntries(e.target.value)}
+        />
+        <Button type="submit" appearance="positive">
+          Apply
+        </Button>
+      </form>
+
       {isLoading && <Spinner className="u-loader" text="Loading logs..." />}
       {!isLoading && logs.length === 0 && (
         <div className="u-align-text--center">There are no logs.</div>
@@ -86,4 +129,4 @@ const OSLogs: FC<Props> = ({ target }) => {
   );
 };
 
-export default OSLogs;
+export default OSDebugLog;

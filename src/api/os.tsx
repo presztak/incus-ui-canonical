@@ -1,11 +1,18 @@
 import type { LxdApiResponse } from "types/apiResponse";
 import type {
   IncusOSApplication,
+  IncusOSConfig,
   IncusOSLog,
   IncusOSSettings,
   IncusOSSystemUpdate,
 } from "types/os";
 import { handleResponse } from "util/helpers";
+
+export interface DebugLogOptions {
+  unit?: string;
+  boot?: string;
+  entries?: number;
+}
 
 const prepareOSURL = (url: string, target: string) => {
   let result = url;
@@ -57,6 +64,19 @@ export const fetchOSApplication = async (
     });
 };
 
+export const addOSApplication = async (
+  name: string,
+  target: string,
+): Promise<void> => {
+  await fetch(prepareOSURL("/os/1.0/applications", target), {
+    method: "POST",
+    body: JSON.stringify({ name: name }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(handleResponse);
+};
+
 export const fetchSystemUpdate = async (
   target: string,
 ): Promise<IncusOSSystemUpdate> => {
@@ -69,7 +89,7 @@ export const fetchSystemUpdate = async (
 
 export const fetchDebugLogs = async (
   target: string,
-  limit: number,
+  options: DebugLogOptions,
 ): Promise<IncusOSLog[]> => {
   const url = new URL("/os/1.0/debug/log", window.location.origin);
 
@@ -77,8 +97,16 @@ export const fetchDebugLogs = async (
     url.searchParams.set("target", target);
   }
 
-  if (limit > 0) {
-    url.searchParams.set("entries", limit);
+  if (options.entries && options.entries > 0) {
+    url.searchParams.set("entries", options.entries.toString());
+  }
+
+  if (options.unit) {
+    url.searchParams.set("unit", options.unit);
+  }
+
+  if (options.boot) {
+    url.searchParams.set("boot", options.boot);
   }
 
   return fetch(url.pathname + url.search)
@@ -88,73 +116,18 @@ export const fetchDebugLogs = async (
     });
 };
 
-export const fetchOSNetwork = async (target: string): Promise<string> => {
-  return fetch(prepareOSURL("/os/1.0/system/network", target))
+export const fetchDebugProcesses = async (target: string): Promise<string> => {
+  return fetch(prepareOSURL("/os/1.0/debug/processes", target))
     .then(handleResponse)
     .then((data: LxdApiResponse<string>) => {
       return data.metadata;
     });
-};
-
-export const updateOSNetwork = async (
-  network: string,
-  target: string,
-): Promise<void> => {
-  await fetch(prepareOSURL("/os/1.0/system/network", target), {
-    method: "PUT",
-    body: network,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then(handleResponse);
-};
-
-export const fetchOSStorage = async (target: string): Promise<string> => {
-  return fetch(prepareOSURL("/os/1.0/system/storage", target))
-    .then(handleResponse)
-    .then((data: LxdApiResponse<string>) => {
-      return data.metadata;
-    });
-};
-
-export const updateOSStorage = async (
-  storage: string,
-  target: string,
-): Promise<void> => {
-  await fetch(prepareOSURL("/os/1.0/system/storage", target), {
-    method: "PUT",
-    body: storage,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then(handleResponse);
-};
-
-export const fetchOSSecurity = async (target: string): Promise<string> => {
-  return fetch(prepareOSURL("/os/1.0/system/security", target))
-    .then(handleResponse)
-    .then((data: LxdApiResponse<string>) => {
-      return data.metadata;
-    });
-};
-
-export const updateOSSecurity = async (
-  security: string,
-  target: string,
-): Promise<void> => {
-  await fetch(prepareOSURL("/os/1.0/system/security", target), {
-    method: "PUT",
-    body: security,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then(handleResponse);
 };
 
 export const fetchOSServices = async (target: string): Promise<string[]> => {
   return fetch(prepareOSURL("/os/1.0/services", target))
     .then(handleResponse)
-    .then((data: LxdApiResponse<string>) => {
+    .then((data: LxdApiResponse<string[]>) => {
       return data.metadata;
     });
 };
@@ -184,19 +157,88 @@ export const updateOSService = async (
   }).then(handleResponse);
 };
 
-export const updateCheck = async (
+// Fetch a config section (returns the {state, config} object).
+export const fetchOSSection = async (
+  endpoint: string,
   target: string,
-): Promise<LxdApiResponse<null>> => {
-  await fetch(prepareOSURL("/os/1.0/system/update/:check", target), {
+): Promise<IncusOSConfig> => {
+  return fetch(prepareOSURL(`/os/1.0/${endpoint}`, target))
+    .then(handleResponse)
+    .then((data: LxdApiResponse<IncusOSConfig>) => {
+      return data.metadata;
+    });
+};
+
+// Update the config of a section.
+export const updateOSSection = async (
+  endpoint: string,
+  config: object,
+  target: string,
+): Promise<void> => {
+  await fetch(prepareOSURL(`/os/1.0/${endpoint}`, target), {
+    method: "PUT",
+    body: JSON.stringify({ config: config }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(handleResponse);
+};
+
+// Run an action (POST /os/1.0/<endpoint>/:<action>).
+export const runOSAction = async (
+  endpoint: string,
+  action: string,
+  target: string,
+  data?: object,
+): Promise<void> => {
+  await fetch(prepareOSURL(`/os/1.0/${endpoint}/:${action}`, target), {
     method: "POST",
+    body: data === undefined ? undefined : JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(handleResponse);
+};
+
+// Run an action returning a file, resolving to an object URL.
+export const runOSActionDownload = async (
+  endpoint: string,
+  action: string,
+  target: string,
+  data?: object,
+): Promise<string> => {
+  return fetch(prepareOSURL(`/os/1.0/${endpoint}/:${action}`, target), {
+    method: "POST",
+    body: data === undefined ? undefined : JSON.stringify(data),
     headers: {
       "Content-Type": "application/json",
     },
   })
-    .then(handleResponse)
-    .then((data: LxdApiResponse<null>) => {
-      return data;
-    });
+    .then(async (response) => {
+      if (!response.ok) {
+        const result = (await response.json()) as { error: string };
+        throw new Error(result.error);
+      }
+
+      return response.blob();
+    })
+    .then((blob) => URL.createObjectURL(blob));
+};
+
+// Run an action taking a file as input.
+export const runOSActionUpload = async (
+  endpoint: string,
+  action: string,
+  file: File,
+  target: string,
+): Promise<void> => {
+  await fetch(prepareOSURL(`/os/1.0/${endpoint}/:${action}`, target), {
+    method: "POST",
+    body: file,
+    headers: {
+      "Content-Type": "application/octet-stream",
+    },
+  }).then(handleResponse);
 };
 
 export const poweroffOS = async (

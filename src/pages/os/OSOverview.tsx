@@ -10,6 +10,7 @@ import {
 import NotificationRow from "components/NotificationRow";
 import { nameFromURL } from "util/os";
 import { queryKeys } from "util/queryKeys";
+import { objectToYaml } from "util/yaml";
 
 interface Props {
   target: string;
@@ -68,12 +69,23 @@ const OSOverview: FC<Props> = ({ target }) => {
           <table>
             <tbody>
               <tr>
+                <th className="u-text--muted">Hostname</th>
+                <td>{incusOSData.environment.hostname}</td>
+              </tr>
+              <tr>
+                <th className="u-text--muted">OS name</th>
+                <td>{incusOSData.environment.os_name}</td>
+              </tr>
+              <tr>
                 <th className="u-text--muted">Version</th>
                 <td>{incusOSData.environment.os_version}</td>
               </tr>
               <tr>
                 <th className="u-text--muted">Update status</th>
-                <td>{systemUpdate?.state?.status}</td>
+                <td>
+                  {systemUpdate?.state?.status}
+                  {systemUpdate?.state?.needs_reboot && " (reboot required)"}
+                </td>
               </tr>
               <tr>
                 <th className="u-text--muted">Installed applications</th>
@@ -87,6 +99,16 @@ const OSOverview: FC<Props> = ({ target }) => {
               </tr>
             </tbody>
           </table>
+        </Col>
+      </Row>
+      <Row className="system-details">
+        <Col size={3}>
+          <h2 className="p-heading--5">System details</h2>
+        </Col>
+        <Col size={7}>
+          <pre className="yaml-code">
+            <code>{objectToYaml(incusOSData ?? {})}</code>
+          </pre>
         </Col>
       </Row>
     </div>
