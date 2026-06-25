@@ -4,22 +4,33 @@ import type {
   RemoteImagesResult,
 } from "types/image";
 import { capitalizeFirstLetter, handleResponse } from "util/helpers";
-import { byLtsFirst } from "util/images";
+import type { ImageServer } from "util/imageServers";
 
-const linuxContainersJson =
-  "https://images.linuxcontainers.org/streams/v1/images.json";
 export const linuxContainersServer = "https://images.linuxcontainers.org";
 
+const streamsIndex = (server: string): string => {
+  return `${server.replace(/\/$/, "")}/streams/v1/images.json`;
+};
 
-// fetching directly from hard coded indexes and servers
-export const loadRemoteImagesLegacy = async (): Promise<RemoteImagesResult> => {
-  const linuxContainersImages = await loadImageJson(linuxContainersJson, linuxContainersServer);
+// fetching directly from hard coded indexes and servers,
+// or from user-defined simplestreams servers when provided
+export const loadRemoteImagesLegacy = async (
+  userServers: ImageServer[] = [],
+): Promise<RemoteImagesResult> => {
+  // when user-defined servers are configured, they override the default list
+  const servers =
+    userServers.length > 0
+      ? userServers.map((server) => ({ url: server.url, name: server.name }))
+      : [{ url: linuxContainersServer, name: undefined }];
 
-  const images = [...linuxContainersImages.images];
+  const results = await Promise.all(
+    servers.map(async ({ url, name }) =>
+      loadImageJson(streamsIndex(url), url, name),
+    ),
+  );
 
-  const errors = [
-    linuxContainersImages.error,
-  ].filter((e) => e !== "");
+  const images = results.flatMap((result) => result.images);
+  const errors = results.map((result) => result.error).filter((e) => e !== "");
 
   return { images, error: errors.join(". ") };
 };
@@ -27,6 +38,7 @@ export const loadRemoteImagesLegacy = async (): Promise<RemoteImagesResult> => {
 const loadImageJson = async (
   file: string,
   server: string,
+  serverName?: string,
 ): Promise<RemoteImagesResult> => {
   return new Promise((resolve) => {
     fetch(file)
@@ -36,7 +48,7 @@ const loadImageJson = async (
           (product) => {
             const { os, ...image } = product[1];
             const formattedOs = capitalizeFirstLetter(os);
-            return { ...image, os: formattedOs, server: server };
+            return { ...image, os: formattedOs, server, serverName };
           },
         );
         resolve({ images, error: "" });
