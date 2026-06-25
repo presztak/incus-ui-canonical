@@ -45,9 +45,10 @@ import {
 import type { CustomSelectOption } from "@canonical/react-components/dist/components/CustomSelect/CustomSelectDropdown";
 import DsIcon from "components/DsIcon";
 import {
-  legacyImageSources,
+  getLegacyImageSources,
   linuxContainersServer,
 } from "util/imageLegacy";
+import { IMAGE_SERVERS_KEY, parseImageServers } from "util/imageServers";
 
 interface Props {
   onSelect: (image: RemoteImage, type?: LxdImageType) => void;
@@ -195,7 +196,9 @@ const ImageSelector: FC<Props> = ({ onSelect, onClose }) => {
     );
   } else {
     registryOptions.push(
-      ...legacyImageSources.map((legacySource) => ({
+      ...getLegacyImageSources(
+        parseImageServers(settings?.config?.[IMAGE_SERVERS_KEY]),
+      ).map((legacySource) => ({
         label: legacySource.label,
         value: addRegistryPrefix(legacySource.server),
       })),
@@ -329,6 +332,9 @@ const ImageSelector: FC<Props> = ({ onSelect, onClose }) => {
         ].includes(item.registryName ?? "");
         if (item.server === linuxContainersServer) {
           source = "Linux Containers";
+        }
+        if (item.serverName) {
+          source = item.serverName;
         }
         return source;
       };

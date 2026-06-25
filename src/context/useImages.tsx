@@ -17,6 +17,7 @@ import {
 } from "util/imageRegistry";
 import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useCurrentProject } from "context/useCurrentProject";
+import { IMAGE_SERVERS_KEY, parseImageServers } from "util/imageServers";
 
 export const useLocalImagesInProject = (
   project: string,
@@ -49,7 +50,7 @@ export const useRemoteImages = (
   enabled = true,
 ): UseQueryResult<RemoteImagesResult> => {
   const { isFineGrained } = useAuth();
-  const { hasImageRegistries } = useSupportedFeatures();
+  const { hasImageRegistries, settings } = useSupportedFeatures();
   const { project } = useCurrentProject();
   const registryQueriesEnabled =
     enabled &&
@@ -57,9 +58,18 @@ export const useRemoteImages = (
     isFineGrained !== null &&
     project !== undefined;
 
+  const userServersValue = settings?.config?.[IMAGE_SERVERS_KEY];
+  const userServers = parseImageServers(userServersValue);
+
   const legacyResult = useQuery({
-    queryKey: [queryKeys.images, "selector", hasImageRegistries, registryName],
-    queryFn: async () => loadRemoteImagesLegacy(registryName),
+    queryKey: [
+      queryKeys.images,
+      "selector",
+      hasImageRegistries,
+      registryName,
+      userServersValue,
+    ],
+    queryFn: async () => loadRemoteImagesLegacy(userServers, registryName),
     enabled: enabled && !hasImageRegistries,
   });
 

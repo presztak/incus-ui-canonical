@@ -12,6 +12,8 @@ import { useAuth } from "context/auth";
 import SettingFormCheckbox from "./SettingFormCheckbox";
 import SettingFormInput from "./SettingFormInput";
 import SettingFormPassword from "./SettingFormPassword";
+import ImageServersForm from "./ImageServersForm";
+import { IMAGE_SERVERS_KEY } from "util/imageServers";
 import ResourceLabel from "components/ResourceLabel";
 import { useServerEntitlements } from "util/entitlements/server";
 import ClusteredSettingFormInput from "./ClusteredSettingFormInput";
@@ -49,6 +51,7 @@ const SettingForm: FC<Props> = ({
   const isLokiAuthPassword = configField.key === "loki.auth.password";
   const isSecret = isTrustPassword || isLokiAuthPassword;
   const isClusteredInput = isClustered && configField.scope === "local";
+  const isImageServers = configField.key === IMAGE_SERVERS_KEY;
 
   const settingLabel = (
     <ResourceLabel bold type="setting" value={configField.key} />
@@ -130,6 +133,14 @@ const SettingForm: FC<Props> = ({
           setEditMode(true);
         }}
       />
+    );
+  }
+
+  if (isImageServers) {
+    return (
+      <div ref={editRef}>
+        <ImageServersForm configField={configField} value={value} />
+      </div>
     );
   }
 

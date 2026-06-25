@@ -32,6 +32,25 @@ describe("loadRemoteImagesLegacy", () => {
     vi.unstubAllGlobals();
   });
 
+  it("loads images from user-defined servers instead of the default", async () => {
+    const fetchMock = stubFetch(jsonResponse(products));
+
+    const result = await loadRemoteImagesLegacy([
+      {
+        name: "custom",
+        url: "https://images.example.com/",
+        protocol: "simplestreams",
+      },
+    ]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://images.example.com/streams/v1/images.json",
+    );
+    expect(result.images[0].server).toBe("https://images.example.com/");
+    expect(result.images[0].serverName).toBe("custom");
+  });
+
   it("loads images from the default source", async () => {
     const fetchMock = stubFetch(jsonResponse(products));
 
@@ -47,7 +66,7 @@ describe("loadRemoteImagesLegacy", () => {
   it("loads images only from the requested server", async () => {
     const fetchMock = stubFetch(jsonResponse(products));
 
-    const result = await loadRemoteImagesLegacy(linuxContainersServer);
+    const result = await loadRemoteImagesLegacy([], linuxContainersServer);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
@@ -61,7 +80,7 @@ describe("loadRemoteImagesLegacy", () => {
   it("returns only the error of the requested source", async () => {
     stubFetch(errorResponse("not found"));
 
-    const result = await loadRemoteImagesLegacy(linuxContainersServer);
+    const result = await loadRemoteImagesLegacy([], linuxContainersServer);
 
     expect(result.images).toEqual([]);
     expect(result.error).toBe("not found");
