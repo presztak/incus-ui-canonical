@@ -67,7 +67,7 @@ export const getUserSettings = (
 ): UserSetting[] => {
   const settings: UserSetting[] = [
     {
-      key: "user.ui_grafana_base_url",
+      key: "user.ui.grafana.base_url",
       category: "user",
       default: "",
       longdesc:
@@ -86,7 +86,7 @@ export const getUserSettings = (
       isSaved: true,
     },
     {
-      key: "user.ui_login_project",
+      key: "user.ui.default_project",
       category: "user",
       default: getDefaultProject(projects),
       shortdesc: "Project to display on login.",
@@ -94,7 +94,7 @@ export const getUserSettings = (
       isSaved: true,
     },
     {
-      key: "user.ui_theme",
+      key: "user.ui.theme",
       category: "user",
       default: "",
       shortdesc:
