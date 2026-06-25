@@ -111,6 +111,15 @@ export const getUserSettings = (
       type: "string",
       isSaved: true,
     },
+    {
+      key: "user.ui.image_servers",
+      category: "user",
+      default: "",
+      shortdesc:
+        "Custom simplestreams image servers to offer when creating instances. Overrides the default image server list when set.",
+      type: "string",
+      isSaved: true,
+    },
   ];
 
   Object.entries(configPairs ?? {})
