@@ -8,6 +8,7 @@ import { useProject } from "context/useProjects";
 import { useProjectEntitlements } from "util/entitlements/projects";
 import { ROOT_PATH } from "util/rootPath";
 import DsIcon from "components/DsIcon";
+import ReceiveMigrationBtn from "pages/instances/actions/ReceiveMigrationBtn";
 
 interface Props {
   className?: string;
@@ -55,6 +56,7 @@ const InstanceEmptyState: FC<Props> = ({ className }) => {
       >
         Create instance
       </Button>
+      <ReceiveMigrationBtn project={projectForCreationName} />
     </EmptyState>
   );
 };
