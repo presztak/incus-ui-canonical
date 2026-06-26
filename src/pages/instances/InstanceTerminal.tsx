@@ -36,7 +36,7 @@ import StartInstanceBtn from "./actions/StartInstanceBtn";
 
 const XTERM_OPTIONS = {
   theme: {
-    background: "#300A24",
+    background: "#292c2f",
   },
 };
 
