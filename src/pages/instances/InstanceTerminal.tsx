@@ -22,6 +22,7 @@ import {
   Spinner,
   Button,
   failure,
+  useNotify,
 } from "@canonical/react-components";
 import { useOperations } from "context/operationsProvider";
 import { LxdOperation } from "types/operation";
@@ -47,6 +48,7 @@ interface Props {
 }
 
 const InstanceTerminal: FC<Props> = ({ instance, refreshInstance }) => {
+  const notify = useNotify();
   const { name, project } = useParams<{
     name: string;
     project: string;
