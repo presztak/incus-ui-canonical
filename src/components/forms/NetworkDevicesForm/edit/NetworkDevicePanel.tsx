@@ -32,6 +32,7 @@ import {
   supportsNicDeviceAcls,
   getNetworkAcls,
   combineAcls,
+  bridgeType,
   ovnType,
   typesWithAcls,
 } from "util/networks";
@@ -147,8 +148,13 @@ const NetworkDevicePanel: FC<Props> = ({
               "A device with this name already exists",
             ),
         }),
-        network: Yup.string().required("Network is required"),
-      });
+      }).test(
+        "network-or-parent",
+        "Network is required",
+        (values) => {
+          return Boolean(values?.network || values?.parent);
+        }
+      );
 
   const getInitialValues = (): NetworkDeviceFormValues => {
     const defaultNetworkName = networkOptions[0]?.name ?? "";
@@ -252,7 +258,7 @@ const NetworkDevicePanel: FC<Props> = ({
         "security.acls.default.ingress.action":
           values.security_acls_default_ingress_action || undefined,
         parent: values.parent,
-        nictype: values.nictype,
+        nictype: parent ? "bridged" : "",
       };
 
       const originalDeviceName = deviceName;
@@ -433,14 +439,11 @@ const NetworkDevicePanel: FC<Props> = ({
                   (t) => t.name === value,
                 );
 
-                let nicType = "";
                 let parent = "";
                 if (selectedNetwork.managed == false) {
-                  nicType = "bridged";
                   parent = value;
                 }
 
-                formik.setFieldValue("nictype", nicType);
                 formik.setFieldValue("parent", parent);
               }}
               networkList={networkOptions}
@@ -486,7 +489,7 @@ const NetworkDevicePanel: FC<Props> = ({
               values={getDefaultEgressIngress()}
               disabled={
                 formik.values.acls?.length === 0 ||
-                selectedNetwork?.type !== ovnType
+                (selectedNetwork?.type !== ovnType && selectedNetwork?.type !== bridgeType)
               }
               directionField={directionField}
             />
