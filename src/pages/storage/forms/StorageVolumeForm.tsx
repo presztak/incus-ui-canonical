@@ -159,7 +159,7 @@ const StorageVolumeForm: FC<Props> = ({ formik, section, setSection }) => {
             <StorageVolumeFormSnapshots formik={formik} />
           )}
           {section === slugify(FILESYSTEM) && (
-            <StorageVolumeFormBlock formik={formik} poolDriver={poolDriver} />
+            <StorageVolumeFormBlock formik={formik} />
           )}
           {section === slugify(ZFS) && <StorageVolumeFormZFS formik={formik} />}
         </Col>
