@@ -121,50 +121,6 @@ export const clusterEvacuationOptions = [
   },
 ];
 
-export const optionIscsiNvme = [
-  {
-    label: "Select option",
-    value: "",
-    disabled: true,
-  },
-  {
-    label: "iSCSI",
-    value: "iscsi",
-  },
-  {
-    label: "NVMe over TCP",
-    value: "nvme",
-  },
-];
-
-export const optionPowerStoreMode = [
-  {
-    label: "Select option",
-    value: "",
-    disabled: true,
-  },
-  {
-    label: "SCSI over TCP",
-    value: "iscsi",
-  },
-];
-
-export const optionNvmeSdc = [
-  {
-    label: "Select option",
-    value: "",
-    disabled: true,
-  },
-  {
-    label: "NVMe over TCP",
-    value: "nvme",
-  },
-  {
-    label: "Dell Storage Data Client",
-    value: "sdc",
-  },
-];
-
 export const bootModeOptions = [
   {
     label: "Select option",
