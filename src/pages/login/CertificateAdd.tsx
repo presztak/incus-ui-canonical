@@ -16,7 +16,7 @@ import { AUTH_METHOD, isPermanent } from "util/authentication";
 import { ROOT_PATH } from "util/rootPath";
 
 const CertificateAdd: FC = () => {
-  const { isAuthenticated, isAuthLoading } = useAuth();
+  const { isAuthenticated, isAuthLoading, authMethod } = useAuth();
   const notify = useNotify();
 
   if (isAuthLoading) {
