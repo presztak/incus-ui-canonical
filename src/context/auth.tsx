@@ -93,6 +93,7 @@ export const AuthProvider: FC<ProviderProps> = ({ children }) => {
         defaultProject,
         hasNoProjects: projects.length === 0 && !isProjectsLoading,
         isFineGrained: isFineGrained(),
+        authMethod,
       }}
     >
       {children}
