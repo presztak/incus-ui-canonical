@@ -16,8 +16,7 @@ import NavigationProjectSelector from "pages/projects/NavigationProjectSelector"
 import {
   capitalizeFirstLetter,
   getElementAbsoluteHeight,
-  logoutBearerToken,
-  logoutOidc,
+  logout,
 } from "util/helpers";
 import { ROOT_PATH } from "util/rootPath";
 import { useCurrentProject } from "context/useCurrentProject";
