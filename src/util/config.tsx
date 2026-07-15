@@ -1,6 +1,13 @@
 import type { LxcConfigOptionCategories, ConfigField } from "types/config";
 import { DOC_BASE_PATH } from "context/DOC_BASE_PATH";
 
+const extractDefault = (value?: string): string => {
+  if (!value) {
+    return "";
+  }
+  return value.startsWith("`") ? value.split("`")[1] : value;
+};
+
 export const toConfigFields = (
   categories: LxcConfigOptionCategories,
 ): ConfigField[] => {
@@ -12,9 +19,7 @@ export const toConfigFields = (
         const configField = {
           ...value,
           category: categoryKey,
-          default: value.defaultdesc?.startsWith("`")
-            ? value.defaultdesc.split("`")[1]
-            : "",
+          default: extractDefault(value.defaultdesc ?? value.default),
           key,
         };
         result.push(configField);
