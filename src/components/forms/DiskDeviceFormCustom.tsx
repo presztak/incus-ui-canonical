@@ -64,7 +64,11 @@ const DiskDeviceFormCustom: FC<Props> = ({ formik, project, profiles }) => {
     isProfile: boolean,
   ): string => {
     if (deviceType === ISO_VOLUME_TYPE) {
-      return isProfile ? ISO_VOLUME_PROFILE_NAME : ISO_VOLUME_NAME;
+      return deduplicateName(
+        isProfile ? ISO_VOLUME_PROFILE_NAME : ISO_VOLUME_NAME,
+        1,
+        existingDeviceNames,
+      );
     }
     return deduplicateName("disk-device", 1, existingDeviceNames);
   };
