@@ -46,21 +46,8 @@ export const isoToRemoteImage = (volume: LxdStorageVolume): RemoteImage => {
 export const LOCAL_IMAGE = "local-image";
 
 export const remoteImageToInstanceSource = (
-  image: RemoteImage | undefined,
-  hasImageRegistries: boolean,
+  image: RemoteImage | undefined
 ): LxdInstanceSource => {
-  if (image?.registryName && hasImageRegistries) {
-    const alias = image.aliases.split(",")[0];
-    const fingerprint = image.fingerprint;
-    return {
-      fingerprint: fingerprint,
-      alias: fingerprint ? undefined : alias,
-      mode: "pull",
-      image_registry: image.registryName,
-      type: "image",
-    };
-  }
-
   if (image?.server === LOCAL_IMAGE || image?.cached) {
     return {
       type: "image",
