@@ -53,6 +53,9 @@ import { IMAGE_SERVERS_KEY, parseImageServers } from "util/imageServers";
 interface Props {
   onSelect: (image: RemoteImage, type?: LxdImageType) => void;
   onClose: () => void;
+  imageType?: LxdImageType;
+  excludeLocalIso?: boolean;
+  onUseImageReference?: () => void;
 }
 
 const ANY = "any";
@@ -60,12 +63,18 @@ const CONTAINER = "container";
 const VM = "virtual-machine";
 const BUILTIN_AND_LOCAL_IMAGES = "view:builtin-and-local";
 
-const ImageSelector: FC<Props> = ({ onSelect, onClose }) => {
+const ImageSelector: FC<Props> = ({
+  onSelect,
+  onClose,
+  imageType,
+  excludeLocalIso = false,
+  onUseImageReference,
+}) => {
   const [query, setQuery] = useState<string>("");
   const [os, setOs] = useState<string>("");
   const [release, setRelease] = useState<string>("");
   const [arch, setArch] = useState<string>("amd64");
-  const [type, setType] = useState<LxdImageType | undefined>(undefined);
+  const [type, setType] = useState<LxdImageType | undefined>(imageType);
   const [variant, setVariant] = useState<string>(ANY);
   const [source, setSource] = useState<string>(BUILTIN_AND_LOCAL_IMAGES);
   const [error, setError] = useState("");
@@ -137,6 +146,7 @@ const ImageSelector: FC<Props> = ({ onSelect, onClose }) => {
     ? []
     : localRemoteImages
         .concat(remoteImages?.images ?? [])
+        .filter((image) => !excludeLocalIso || image.server !== LOCAL_ISO)
         .filter((image) => archSupported.includes(image.arch));
   const hasImages = images.length > 0;
 
@@ -534,8 +544,18 @@ const ImageSelector: FC<Props> = ({ onSelect, onClose }) => {
           ...instanceCreationTypes,
         ]}
         value={type ?? ""}
-        disabled={!hasImages}
+        disabled={!hasImages || imageType !== undefined}
       />
+      {onUseImageReference && (
+        <Button
+          appearance="base"
+          className="u-no-margin--bottom"
+          onClick={onUseImageReference}
+          type="button"
+        >
+          Use image reference
+        </Button>
+      )}
     </div>
   );
 
