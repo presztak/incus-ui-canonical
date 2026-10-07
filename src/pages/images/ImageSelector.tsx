@@ -8,6 +8,7 @@ import {
   Button,
   Col,
   CustomSelect,
+  Input,
   MainTable,
   Modal,
   Notification,
@@ -526,35 +527,39 @@ const ImageSelector: FC<Props> = ({
         value={archAll.length > 0 ? arch : ""}
         disabled={archAll.length === 0}
       />
-      <Select
-        label="Type"
-        name="type"
-        onChange={(v) => {
-          setType(
-            v.target.value === ANY
-              ? undefined
-              : (v.target.value as LxdImageType),
-          );
-        }}
-        options={[
-          {
-            label: "Any",
-            value: ANY,
-          },
-          ...instanceCreationTypes,
-        ]}
-        value={type ?? ""}
-        disabled={!hasImages || imageType !== undefined}
-      />
-      {onUseImageReference && (
-        <Button
-          appearance="base"
-          className="u-no-margin--bottom"
-          onClick={onUseImageReference}
-          type="button"
-        >
-          Use image reference
-        </Button>
+      {imageType ? (
+        <Input
+          id="imageFilterType"
+          label="Compatible with"
+          name="type"
+          readOnly
+          type="text"
+          value={
+            instanceCreationTypes.find((option) => option.value === imageType)
+              ?.label ?? imageType
+          }
+        />
+      ) : (
+        <Select
+          label="Type"
+          name="type"
+          onChange={(v) => {
+            setType(
+              v.target.value === ANY
+                ? undefined
+                : (v.target.value as LxdImageType),
+            );
+          }}
+          options={[
+            {
+              label: "Any",
+              value: ANY,
+            },
+            ...instanceCreationTypes,
+          ]}
+          value={type ?? ""}
+          disabled={!hasImages}
+        />
       )}
     </div>
   );
@@ -609,6 +614,17 @@ const ImageSelector: FC<Props> = ({
             >
               <DsIcon icon="filter" />
             </Button>
+            {onUseImageReference && (
+              <Button
+                appearance="default"
+                className="has-icon image-reference-button"
+                onClick={onUseImageReference}
+                type="button"
+              >
+                <DsIcon icon="image" />
+                <span>Use image reference</span>
+              </Button>
+            )}
           </div>
           {isCardView && showFilters && filters}
           <div className="image-list">

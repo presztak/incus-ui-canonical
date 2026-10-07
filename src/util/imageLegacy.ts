@@ -23,8 +23,12 @@ const streamsIndex = (server: string): string => {
 export const getLegacyImageSources = (
   userServers: ImageServer[] = [],
 ): LegacyImageSource[] => {
-  if (userServers.length > 0) {
-    return userServers.map((server) => ({
+  const simpleStreamsServers = userServers.filter(
+    (server) => server.protocol === "simplestreams",
+  );
+
+  if (simpleStreamsServers.length > 0) {
+    return simpleStreamsServers.map((server) => ({
       label: server.name || server.url,
       server: server.url,
       json: streamsIndex(server.url),

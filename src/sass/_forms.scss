@@ -491,9 +491,14 @@
   .image-select-header {
     align-items: flex-start;
     display: flex;
+    gap: $sph--small;
 
     > :first-child {
       flex-grow: 1;
+    }
+
+    .image-reference-button {
+      flex-shrink: 0;
     }
   }
 
