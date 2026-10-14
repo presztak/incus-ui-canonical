@@ -18,6 +18,11 @@ import {
 import { unmanagedNetworkDetailRoute } from "util/networks";
 import { ALL_PROJECTS, getOverviewUrl } from "util/projects";
 import { AUTH_METHOD } from "util/authentication";
+import {
+  clearLoginRedirect,
+  loadLoginRedirect,
+  saveLoginRedirect,
+} from "util/loginRedirect";
 
 const AuthenticationSetup = lazy(
   async () => import("pages/login/AuthenticationSetup"),
@@ -179,6 +184,15 @@ const App: FC = () => {
     return getOverviewUrl(homeProject);
   };
 
+  const loginRedirect =
+    isAuthenticated && !isAuthLoading ? loadLoginRedirect() : null;
+
+  useEffect(() => {
+    if (loginRedirect) {
+      clearLoginRedirect();
+    }
+  }, [loginRedirect]);
+
   if (isAuthLoading) {
     return <Spinner className="u-loader" text="Loading..." isMainComponent />;
   }
@@ -191,7 +205,12 @@ const App: FC = () => {
     !isAuthenticated &&
     !window.location.href.includes(`${ROOT_PATH}/ui/login`)
   ) {
+    saveLoginRedirect();
     return <Navigate to={`${ROOT_PATH}/ui/login`} replace={true} />;
+  }
+
+  if (loginRedirect) {
+    return <Navigate to={loginRedirect} replace={true} />;
   }
 
   return (
