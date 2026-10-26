@@ -47,7 +47,6 @@ import type { LxdNetwork } from "types/network";
 import { Link } from "react-router";
 import { ROOT_PATH } from "util/rootPath";
 import { useEscCallback } from "context/useEscCallback";
-import { bridgeType } from "util/networks";
 
 interface Props {
   project: string;
