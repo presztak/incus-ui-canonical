@@ -51,7 +51,7 @@ export const parseDevices = (devices: LxdDevices): FormDevice[] => {
               item["security.acls.default.egress.action"],
             "security.acls.default.ingress.action":
               item["security.acls.default.ingress.action"],
-            };
+          };
         }
 
         return {
@@ -78,6 +78,7 @@ export const parseDevices = (devices: LxdDevices): FormDevice[] => {
           recursive: "recursive" in item ? item.recursive : undefined,
           required: "required" in item ? item.required : undefined,
           shift: "shift" in item ? item.shift : undefined,
+          dependent: "dependent" in item ? item.dependent : undefined,
           type: "disk",
           bare: item,
         };
