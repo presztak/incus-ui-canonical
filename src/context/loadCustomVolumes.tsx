@@ -1,14 +1,19 @@
 import type { LxdStorageVolume } from "types/storage";
 import { isSnapshot } from "util/storageVolume";
-import { fetchAllStorageVolumes } from "api/storage-volumes";
+import { loadVolumes } from "context/loadIsoVolumes";
 
 export const loadCustomVolumes = async (
   project: string,
+  hasStorageVolumesAll: boolean,
   isFineGrained: boolean | null,
 ): Promise<LxdStorageVolume[]> => {
   const result: LxdStorageVolume[] = [];
 
-  const volumes = await fetchAllStorageVolumes(project, isFineGrained);
+  const volumes = await loadVolumes(
+    project,
+    hasStorageVolumesAll,
+    isFineGrained,
+  );
   volumes.forEach((volume) => {
     const contentTypes = ["filesystem", "block"];
     const isFilesystemOrBlock = contentTypes.includes(volume.content_type);

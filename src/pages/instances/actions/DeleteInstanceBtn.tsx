@@ -1,5 +1,5 @@
 import { useState, type FC } from "react";
-import { deleteInstance } from "api/instances";
+import { deleteInstance, stopInstance } from "api/instances";
 import type { LxdInstance } from "types/instance";
 import { useNavigate } from "react-router-dom";
 import { deletableStatuses } from "util/instanceDelete";
@@ -20,6 +20,7 @@ import { InstanceRichChip } from "../InstanceRichChip";
 import ConfirmationCheckbox from "components/ConfirmationCheckbox";
 import { ROOT_PATH } from "util/rootPath";
 import DsIcon from "components/DsIcon";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 
 interface Props {
   instance: LxdInstance;
@@ -41,18 +42,13 @@ const DeleteInstanceBtn: FC<Props> = ({
   const [isLoading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { canDeleteInstance } = useInstanceEntitlements();
+  const { hasInstanceForceDelete } = useSupportedFeatures();
   const [isForce, setForce] = useState(false);
 
   const isRunningOrFrozen =
     isInstanceRunning(instance) || isInstanceFrozen(instance);
 
-  const handleDelete = () => {
-    if (isRunningOrFrozen && !isForce) {
-      return;
-    }
-
-    setLoading(true);
-
+  const doDelete = () => {
     const instanceLink = (
       <InstanceRichChip
         instanceName={instance.name}
@@ -60,7 +56,7 @@ const DeleteInstanceBtn: FC<Props> = ({
       />
     );
 
-    deleteInstance(instance, isForce)
+    deleteInstance(instance, hasInstanceForceDelete && isForce)
       .then((operation) => {
         eventQueue.set(
           operation.metadata.id,
@@ -98,6 +94,42 @@ const DeleteInstanceBtn: FC<Props> = ({
         toastNotify.failure("Instance deletion failed", e, instanceLink);
         setLoading(false);
       });
+  };
+
+  const handleDelete = () => {
+    if (isRunningOrFrozen && !isForce) {
+      return;
+    }
+
+    setLoading(true);
+
+    // If backend doesn't support force delete, stop the instance first
+    if (isRunningOrFrozen && !hasInstanceForceDelete) {
+      const instanceLink = (
+        <InstanceRichChip
+          instanceName={instance.name}
+          projectName={instance.project}
+        />
+      );
+
+      stopInstance(instance, true)
+        .then((operation) => {
+          eventQueue.set(operation.metadata.id, doDelete, (msg) => {
+            toastNotify.failure(
+              "Instance stop failed",
+              new Error(msg),
+              instanceLink,
+            );
+            setLoading(false);
+          });
+        })
+        .catch((e) => {
+          toastNotify.failure("Instance stop failed", e, instanceLink);
+          setLoading(false);
+        });
+    } else {
+      doDelete();
+    }
   };
 
   const isDeletableStatus = deletableStatuses.includes(instance.status);

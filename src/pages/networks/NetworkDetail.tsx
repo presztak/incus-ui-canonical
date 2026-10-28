@@ -25,9 +25,11 @@ import classnames from "classnames";
 import NotFound from "components/NotFound";
 import { ROOT_PATH } from "util/rootPath";
 import LoadBalancers from "pages/networks/LoadBalancers";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 
 const NetworkDetail: FC = () => {
   const notify = useNotify();
+  const { hasLoadBalancerPools } = useSupportedFeatures();
 
   const { name, project, member, activeTab } = useParams<{
     name: string;
@@ -98,7 +100,9 @@ const NetworkDetail: FC = () => {
   const tabs = [
     "Configuration",
     getTabLink("Forwards", hasForwards, "forwards"),
-    getTabLink("Load balancers", hasLoadBalancers, "load-balancers"),
+    ...(hasLoadBalancerPools
+      ? [getTabLink("Load balancers", hasLoadBalancers, "load-balancers")]
+      : []),
     getTabLink("Leases", hasLeases, "leases"),
     getTabLink("Local peerings", isPeeringSupported, "local-peerings"),
   ];

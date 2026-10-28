@@ -19,6 +19,7 @@ import NetworkLocalPeeringForm from "../forms/NetworkLocalPeeringForm";
 import type { LocalPeeringFormValues } from "types/forms/localPeering";
 import { useEventQueue } from "context/eventQueue";
 import { useLocalPeering } from "context/useLocalPeerings";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { updateNetworkPeer } from "api/network-local-peering";
 import ResourceLink from "components/ResourceLink";
 import { ROOT_PATH } from "util/rootPath";
@@ -34,6 +35,7 @@ const EditLocalPeeringPanel: FC<Props> = ({ network }) => {
   const notify = useNotify();
   const toastNotify = useToastNotification();
   const queryClient = useQueryClient();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   const closePanel = () => {
@@ -118,26 +120,30 @@ const EditLocalPeeringPanel: FC<Props> = ({ network }) => {
         localPeeringPayload,
       )
         .then((operation) => {
-          toastNotify.info(
-            <>
-              Update of local peering{" "}
-              <ResourceLink
-                type={"peering"}
-                value={localPeering ?? ""}
-                to={`${networkURL}/local-peerings`}
-              />{" "}
-              has started.
-            </>,
-          );
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess();
-            },
-            (msg) => {
-              onFailure(new Error(msg));
-            },
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Update of local peering{" "}
+                <ResourceLink
+                  type={"peering"}
+                  value={localPeering ?? ""}
+                  to={`${networkURL}/local-peerings`}
+                />{" "}
+                has started.
+              </>,
+            );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess();
+              },
+              (msg) => {
+                onFailure(new Error(msg));
+              },
+            );
+          } else {
+            onSuccess();
+          }
         })
         .catch((e) => {
           onFailure(e);

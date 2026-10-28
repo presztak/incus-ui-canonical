@@ -11,6 +11,7 @@ import {
   useToastNotification,
 } from "@canonical/react-components";
 import { useEventQueue } from "context/eventQueue";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useSettings } from "context/useSettings";
 import type { LxdStorageVolume } from "types/storage";
 import VolumeLinkChip from "../VolumeLinkChip";
@@ -35,6 +36,7 @@ const ExportVolumeModal: FC<Props> = ({ volume, close }) => {
   const eventQueue = useEventQueue();
   const toastNotify = useToastNotification();
   const volumeLink = <VolumeLinkChip volume={volume} />;
+  const { hasBackupMetadataVersion } = useSupportedFeatures();
   const { data: settings } = useSettings();
   const backupMetadataVersionRange =
     settings?.environment?.backup_metadata_version_range ?? [];
@@ -80,7 +82,9 @@ const ExportVolumeModal: FC<Props> = ({ volume, close }) => {
       compression_algorithm: values.compression,
       volume_only: values.volumeOnly,
       optimized_storage: values.optimizedStorage,
-      version: Number(values.exportVersion),
+      version: hasBackupMetadataVersion
+        ? Number(values.exportVersion)
+        : undefined,
     });
 
     createVolumeBackup(volume, payload)
@@ -167,16 +171,18 @@ const ExportVolumeModal: FC<Props> = ({ volume, close }) => {
             { value: "none", label: "None" },
           ]}
         />
-        <Select
-          {...formik.getFieldProps("exportVersion")}
-          id="exportVersion"
-          label="Export version"
-          help="Lower versions allow imports on older LXD versions"
-          options={backupMetadataVersionRange.map((version) => ({
-            value: version.toString(),
-            label: version.toString(),
-          }))}
-        />
+        {hasBackupMetadataVersion && (
+          <Select
+            {...formik.getFieldProps("exportVersion")}
+            id="exportVersion"
+            label="Export version"
+            help="Lower versions allow imports on older LXD versions"
+            options={backupMetadataVersionRange.map((version) => ({
+              value: version.toString(),
+              label: version.toString(),
+            }))}
+          />
+        )}
         <CheckboxInput
           {...formik.getFieldProps("optimizedStorage")}
           label="Use storage driver optimized format"

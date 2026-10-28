@@ -57,6 +57,7 @@ import ProfileRichChip from "pages/profiles/ProfileRichChip";
 import BootForm from "components/forms/BootForm";
 import { useProfileEntitlements } from "util/entitlements/profiles";
 import { useEventQueue } from "context/eventQueue";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import {
   getProfilePayload,
   getProfileEditValues,
@@ -73,6 +74,7 @@ interface Props {
 const EditProfile: FC<Props> = ({ profile }) => {
   const notify = useNotify();
   const eventQueue = useEventQueue();
+  const { hasStorageAndProfileOperations } = useSupportedFeatures();
   const toastNotify = useToastNotification();
   const { project, section } = useParams<{
     project: string;
@@ -143,16 +145,21 @@ const EditProfile: FC<Props> = ({ profile }) => {
 
       updateProfile(profilePayload, project)
         .then((operation) => {
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              handleSuccess(profilePayload);
-            },
-            (msg) => {
-              handleFailure(new Error(msg));
-            },
-            handleFinish,
-          );
+          if (hasStorageAndProfileOperations) {
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                handleSuccess(profilePayload);
+              },
+              (msg) => {
+                handleFailure(new Error(msg));
+              },
+              handleFinish,
+            );
+          } else {
+            handleSuccess(profilePayload);
+            handleFinish();
+          }
         })
         .catch((e: Error) => {
           handleFailure(e);

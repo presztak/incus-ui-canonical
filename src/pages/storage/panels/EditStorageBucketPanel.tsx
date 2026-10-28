@@ -20,6 +20,7 @@ import type { LxdStorageBucket } from "types/storage";
 import { pluralize } from "util/helpers";
 import { useEventQueue } from "context/eventQueue";
 import { useCurrentProject } from "context/useCurrentProject";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { ROOT_PATH } from "util/rootPath";
 import { useEscCallback } from "context/useEscCallback";
 import StorageBucketExplanationTooltip from "pages/storage/StorageBucketExplanationTooltip";
@@ -41,6 +42,7 @@ const EditStorageBucketPanel: FC<Props> = ({ bucket }) => {
   };
 
   useEscCallback(closePanel);
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
 
   const invalidateCache = () => {
     queryClient.invalidateQueries({
@@ -102,27 +104,31 @@ const EditStorageBucketPanel: FC<Props> = ({ bucket }) => {
         values.target,
       )
         .then((operation) => {
-          toastNotify.info(
-            <>
-              Update of storage bucket{" "}
-              <ResourceLink
-                type="bucket"
-                value={values.name}
-                to={`${ROOT_PATH}/ui/project/${encodeURIComponent(project?.name ?? "")}/storage/buckets`}
-              />{" "}
-              has started.
-            </>,
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Update of storage bucket{" "}
+                <ResourceLink
+                  type="bucket"
+                  value={values.name}
+                  to={`${ROOT_PATH}/ui/project/${encodeURIComponent(project?.name ?? "")}/storage/buckets`}
+                />{" "}
+                has started.
+              </>,
+            );
 
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(values.name);
-            },
-            (msg) => {
-              onFailure(values.name, new Error(msg));
-            },
-          );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(values.name);
+              },
+              (msg) => {
+                onFailure(values.name, new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(values.name);
+          }
         })
         .catch((e) => {
           onFailure(values.name, e);

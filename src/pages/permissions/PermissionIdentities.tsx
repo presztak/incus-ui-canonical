@@ -29,6 +29,7 @@ import EditIdentityGroupsPanel from "./panels/EditIdentityGroupsPanel";
 import Tag from "components/Tag";
 import BulkDeleteIdentitiesBtn from "./actions/BulkDeleteIdentitiesBtn";
 import DeleteIdentityBtn from "./actions/DeleteIdentityBtn";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { pluralize } from "util/helpers";
 import { isLegacyIdentity, isSystemIdentity } from "util/identity";
 import { useIdentities } from "context/useIdentities";
@@ -52,6 +53,7 @@ const PermissionIdentities: FC = () => {
   const panelParams = usePanelParams();
   const [searchParams] = useSearchParams();
   const [selectedIdentityIds, setSelectedIdentityIds] = useState<string[]>([]);
+  const { hasAccessManagementTLS } = useSupportedFeatures();
   const { canEditIdentity } = useIdentityEntitlements();
 
   useEffect(() => {
@@ -222,7 +224,9 @@ const PermissionIdentities: FC = () => {
               >
                 <DsIcon icon="edit" />
               </Button>
-              <DeleteIdentityBtn identity={identity} />
+              {hasAccessManagementTLS && (
+                <DeleteIdentityBtn identity={identity} />
+              )}
             </>
           ),
           className: "u-align--right actions",
@@ -304,7 +308,9 @@ const PermissionIdentities: FC = () => {
                     identities={selectedIdentities}
                     className="u-no-margin--bottom"
                   />
-                  <BulkDeleteIdentitiesBtn identities={selectedIdentities} />
+                  {hasAccessManagementTLS && (
+                    <BulkDeleteIdentitiesBtn identities={selectedIdentities} />
+                  )}
                 </div>
               )}
             </PageHeader.Left>

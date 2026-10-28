@@ -2,6 +2,7 @@ import type { FC } from "react";
 import { Link } from "react-router-dom";
 import { List } from "@canonical/react-components";
 import { useAuth } from "context/auth";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { pluralize } from "util/helpers";
 import { isLegacyIdentity } from "util/identity";
 import { ROOT_PATH } from "util/rootPath";
@@ -11,10 +12,11 @@ import DsIcon from "components/DsIcon";
 
 const PermissionsCard: FC = () => {
   const { currentIdentity, effectiveGroups, isAuthLoading } = useAuth();
+  const { hasAccessManagement } = useSupportedFeatures();
   const isAdmin = effectiveGroups?.includes("admins") ?? false;
   const isLegacy = currentIdentity && isLegacyIdentity(currentIdentity);
 
-  if (isAuthLoading || isAdmin || isLegacy) {
+  if (!hasAccessManagement || isAuthLoading || isAdmin || isLegacy) {
     return null;
   }
 

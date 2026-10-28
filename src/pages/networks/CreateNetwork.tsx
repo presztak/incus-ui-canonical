@@ -42,6 +42,7 @@ import { bridgeType, ovnType } from "util/networks";
 import { useClusterMembers } from "context/useClusterMembers";
 import { useAuth } from "context/auth";
 import { useEventQueue } from "context/eventQueue";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import NetworkRichChip from "pages/networks/NetworkRichChip";
 import ResourceLabel from "components/ResourceLabel";
 
@@ -58,6 +59,7 @@ const CreateNetwork: FC = () => {
   const isClustered = isClusteredServer(settings);
   const hasOvn = supportsOvnNetwork(settings);
   const { data: clusterMembers = [] } = useClusterMembers();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   if (!project) {
@@ -150,6 +152,7 @@ const CreateNetwork: FC = () => {
                 network,
                 project,
                 clusterMembers,
+                hasStorageAndNetworkOperations,
                 values.parentPerClusterMember,
                 values.bridge_external_interfaces_per_member,
               )
@@ -161,23 +164,27 @@ const CreateNetwork: FC = () => {
             `${ROOT_PATH}/ui/project/${encodeURIComponent(project)}/networks`,
           );
 
-          toastNotify.info(
-            <>
-              Creation of network{" "}
-              <ResourceLabel bold type="network" value={values.name} /> has
-              started.
-            </>,
-          );
+          if (hasStorageAndNetworkOperations && operation.metadata.id) {
+            toastNotify.info(
+              <>
+                Creation of network{" "}
+                <ResourceLabel bold type="network" value={values.name} /> has
+                started.
+              </>,
+            );
 
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(values.name);
-            },
-            (msg) => {
-              onFailure(values.name, new Error(msg));
-            },
-          );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(values.name);
+              },
+              (msg) => {
+                onFailure(values.name, new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(values.name);
+          }
         })
         .catch((e) => {
           onFailure(values.name, e);

@@ -151,6 +151,7 @@ export const deleteStorageBucket = async (
 export const deleteStorageBucketBulk = async (
   buckets: LxdStorageBucket[],
   project: string,
+  hasStorageAndNetworkOperations: boolean,
 ): Promise<BulkOperationResult[]> => {
   const results: BulkOperationResult[] = [];
   const operations = await Promise.allSettled(
@@ -171,13 +172,15 @@ export const deleteStorageBucketBulk = async (
     return res.value;
   });
 
-  await Promise.all(
-    pendingOperations.map(async ({ operation }) => {
-      if (operation.metadata.id) {
-        await waitForOperation(operation.metadata.id);
-      }
-    }),
-  );
+  if (hasStorageAndNetworkOperations) {
+    await Promise.all(
+      pendingOperations.map(async ({ operation }) => {
+        if (operation.metadata.id) {
+          await waitForOperation(operation.metadata.id);
+        }
+      }),
+    );
+  }
 
   return new Promise((resolve) => {
     buckets.forEach((bucket) => {
@@ -307,6 +310,7 @@ export const deleteStorageBucketKeyBulk = async (
   bucket: LxdStorageBucket,
   keys: LxdStorageBucketKey[],
   project: string,
+  hasStorageAndNetworkOperations: boolean,
 ): Promise<BulkOperationResult[]> => {
   const results: BulkOperationResult[] = [];
   const operations = await Promise.allSettled(
@@ -328,13 +332,15 @@ export const deleteStorageBucketKeyBulk = async (
     return res.value;
   });
 
-  await Promise.all(
-    pendingOperations.map(async ({ operation }) => {
-      if (operation.metadata.id) {
-        await waitForOperation(operation.metadata.id);
-      }
-    }),
-  );
+  if (hasStorageAndNetworkOperations) {
+    await Promise.all(
+      pendingOperations.map(async ({ operation }) => {
+        if (operation.metadata.id) {
+          await waitForOperation(operation.metadata.id);
+        }
+      }),
+    );
+  }
 
   return new Promise((resolve) => {
     keys.forEach((key) => {

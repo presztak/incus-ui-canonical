@@ -1,4 +1,4 @@
-import { useEffect, type FC } from "react";
+import { Fragment, useEffect, type FC } from "react";
 import {
   Button,
   EmptyState,
@@ -43,6 +43,7 @@ import { useProjectEntitlements } from "util/entitlements/projects";
 import { useCurrentProject } from "context/useCurrentProject";
 import DocLink from "components/DocLink";
 import { ROOT_PATH } from "util/rootPath";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import NetworkLoadBalancerCount from "pages/networks/NetworkLoadBalancerCount";
 import DsIcon from "components/DsIcon";
 
@@ -56,6 +57,7 @@ const NetworkList: FC = () => {
   const [searchParams] = useSearchParams();
   const { canCreateNetworks } = useProjectEntitlements();
   const { project: currentProject } = useCurrentProject();
+  const { hasLoadBalancerPools } = useSupportedFeatures();
 
   const filters: NetworkFilters = {
     queries: searchParams.getAll(QUERY).map((value) => value.toLowerCase()),
@@ -123,7 +125,9 @@ const NetworkList: FC = () => {
       sortKey: "description",
     },
     { content: "Forwards", className: "u-align--right forwards" },
-    { content: "Balancers", className: "u-align--right forwards" },
+    ...(hasLoadBalancerPools
+      ? [{ content: "Balancers", className: "u-align--right forwards" }]
+      : []),
     {
       content: "Used by",
       sortKey: "usedBy",
@@ -230,14 +234,21 @@ const NetworkList: FC = () => {
             className: "u-align--right forwards",
             "aria-label": "Forwards",
           },
-          {
-            content: (
-              <NetworkLoadBalancerCount network={network} project={project} />
-            ),
-            role: "cell",
-            className: "u-align--right forwards",
-            "aria-label": "Balancers",
-          },
+          ...(hasLoadBalancerPools
+            ? [
+                {
+                  content: (
+                    <NetworkLoadBalancerCount
+                      network={network}
+                      project={project}
+                    />
+                  ),
+                  role: "cell",
+                  className: "u-align--right forwards",
+                  "aria-label": "Balancers",
+                },
+              ]
+            : []),
           {
             content: network.used_by?.length ?? "0",
             role: "cell",

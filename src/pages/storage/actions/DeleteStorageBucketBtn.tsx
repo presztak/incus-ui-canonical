@@ -11,6 +11,7 @@ import { useStorageBucketEntitlements } from "util/entitlements/storage-buckets"
 import { deleteStorageBucket } from "api/storage-buckets";
 import { useEventQueue } from "context/eventQueue";
 import { useCurrentProject } from "context/useCurrentProject";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import ResourceLabel from "components/ResourceLabel";
 import { useNavigate } from "react-router-dom";
 import { ROOT_PATH } from "util/rootPath";
@@ -35,6 +36,7 @@ const DeleteStorageBucketBtn: FC<Props> = ({
   const projectName = project?.name || "";
   const navigate = useNavigate();
   const toastNotify = useToastNotification();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   const invalidateCache = () => {
@@ -72,22 +74,26 @@ const DeleteStorageBucketBtn: FC<Props> = ({
     setLoading(true);
     deleteStorageBucket(bucket.name, bucket.pool, projectName)
       .then((operation) => {
-        toastNotify.info(
-          <>
-            Deletion of storage bucket{" "}
-            <ResourceLabel bold type="bucket" value={bucket.name} /> has
-            started.
-          </>,
-        );
-        eventQueue.set(
-          operation.metadata.id,
-          () => {
-            onSuccess();
-          },
-          (msg) => {
-            onFailure(new Error(msg));
-          },
-        );
+        if (hasStorageAndNetworkOperations) {
+          toastNotify.info(
+            <>
+              Deletion of storage bucket{" "}
+              <ResourceLabel bold type="bucket" value={bucket.name} /> has
+              started.
+            </>,
+          );
+          eventQueue.set(
+            operation.metadata.id,
+            () => {
+              onSuccess();
+            },
+            (msg) => {
+              onFailure(new Error(msg));
+            },
+          );
+        } else {
+          onSuccess();
+        }
       })
       .catch((e) => {
         onFailure(e);

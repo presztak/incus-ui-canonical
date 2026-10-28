@@ -14,6 +14,7 @@ import { deleteNetworkPeer } from "api/network-local-peering";
 import ResourceLink from "components/ResourceLink";
 import NetworkRichChip from "../NetworkRichChip";
 import { ROOT_PATH } from "util/rootPath";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useEventQueue } from "context/eventQueue";
 import DsIcon from "components/DsIcon";
 
@@ -30,6 +31,7 @@ const DeleteLocalPeerBtn: FC<Props> = ({ network, localPeering }) => {
   const { project } = useCurrentProject();
   const projectName = project?.name || "";
   const toastNotify = useToastNotification();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
   const networkURL = `${ROOT_PATH}/ui/project/${encodeURIComponent(projectName)}/network/${encodeURIComponent(network.name)}`;
 
@@ -70,27 +72,31 @@ const DeleteLocalPeerBtn: FC<Props> = ({ network, localPeering }) => {
     setLoading(true);
     deleteNetworkPeer(network.name, projectName, localPeering)
       .then((operation) => {
-        toastNotify.info(
-          <>
-            Deletion of local peering{" "}
-            <ResourceLabel type="peering" value={localPeering} bold /> for
-            network{" "}
-            <NetworkRichChip
-              networkName={network.name}
-              projectName={projectName}
-            />{" "}
-            has started.
-          </>,
-        );
-        eventQueue.set(
-          operation.metadata.id,
-          () => {
-            onSuccess();
-          },
-          (msg) => {
-            onFailure(new Error(msg));
-          },
-        );
+        if (hasStorageAndNetworkOperations) {
+          toastNotify.info(
+            <>
+              Deletion of local peering{" "}
+              <ResourceLabel type="peering" value={localPeering} bold /> for
+              network{" "}
+              <NetworkRichChip
+                networkName={network.name}
+                projectName={projectName}
+              />{" "}
+              has started.
+            </>,
+          );
+          eventQueue.set(
+            operation.metadata.id,
+            () => {
+              onSuccess();
+            },
+            (msg) => {
+              onFailure(new Error(msg));
+            },
+          );
+        } else {
+          onSuccess();
+        }
       })
       .catch(onFailure);
   };

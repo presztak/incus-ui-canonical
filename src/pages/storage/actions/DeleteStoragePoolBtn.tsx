@@ -14,6 +14,7 @@ import { queryKeys } from "util/queryKeys";
 import ResourceLabel from "components/ResourceLabel";
 import { useStoragePoolEntitlements } from "util/entitlements/storage-pools";
 import { ROOT_PATH } from "util/rootPath";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useEventQueue } from "context/eventQueue";
 import StoragePoolRichChip from "../StoragePoolRichChip";
 import DsIcon from "components/DsIcon";
@@ -37,6 +38,7 @@ const DeleteStoragePoolBtn: FC<Props> = ({
   const [isLoading, setLoading] = useState(false);
   const queryClient = useQueryClient();
   const { canDeletePool } = useStoragePoolEntitlements();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   const notifySuccess = (poolName: string) => {
@@ -78,23 +80,27 @@ const DeleteStoragePoolBtn: FC<Props> = ({
     setLoading(true);
     deleteStoragePool(pool.name)
       .then((operation) => {
-        toastNotify.info(
-          <>
-            Deletion of storage pool{" "}
-            <StoragePoolRichChip poolName={pool.name} projectName={project} />{" "}
-            has started.
-          </>,
-        );
-        eventQueue.set(
-          operation.metadata.id,
-          () => {
-            setLoading(false);
-            onSuccess();
-          },
-          (msg) => {
-            onFailure(new Error(msg));
-          },
-        );
+        if (hasStorageAndNetworkOperations) {
+          toastNotify.info(
+            <>
+              Deletion of storage pool{" "}
+              <StoragePoolRichChip poolName={pool.name} projectName={project} />{" "}
+              has started.
+            </>,
+          );
+          eventQueue.set(
+            operation.metadata.id,
+            () => {
+              setLoading(false);
+              onSuccess();
+            },
+            (msg) => {
+              onFailure(new Error(msg));
+            },
+          );
+        } else {
+          onSuccess();
+        }
       })
       .catch((e) => {
         onFailure(e);

@@ -31,6 +31,7 @@ import FormSubmitBtn from "components/forms/FormSubmitBtn";
 import { useStoragePoolEntitlements } from "util/entitlements/storage-pools";
 import { usePoolFromClusterMembers } from "context/useStoragePools";
 import StoragePoolRichChip from "./StoragePoolRichChip";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useEventQueue } from "context/eventQueue";
 
 interface Props {
@@ -51,6 +52,8 @@ const EditStoragePool: FC<Props> = ({ pool }) => {
   const { data: clusterMembers = [] } = useClusterMembers();
   const [version, setVersion] = useState(0);
   const { canEditPool } = useStoragePoolEntitlements();
+  const { hasRemoteDropSource, hasStorageAndNetworkOperations } =
+    useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   if (!project) {
@@ -138,7 +141,7 @@ const EditStoragePool: FC<Props> = ({ pool }) => {
     onSubmit: (values) => {
       const savedPool = values.yaml
         ? (yamlToObject(values.yaml) as LxdStoragePool)
-        : toStoragePool(values);
+        : toStoragePool(values, hasRemoteDropSource);
 
       const mutation =
         clusterMembers.length > 0
@@ -146,6 +149,7 @@ const EditStoragePool: FC<Props> = ({ pool }) => {
               updateClusteredPool(
                 savedPool,
                 clusterMembers,
+                hasStorageAndNetworkOperations,
                 values.sourcePerClusterMember,
                 values.zfsPoolNamePerClusterMember,
                 values.sizePerClusterMember,
@@ -154,25 +158,29 @@ const EditStoragePool: FC<Props> = ({ pool }) => {
 
       mutation()
         .then((operation) => {
-          toastNotify.info(
-            <>
-              Update of storage pool{" "}
-              <StoragePoolRichChip
-                poolName={savedPool.name}
-                projectName={project}
-              />{" "}
-              has started.
-            </>,
-          );
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(savedPool.name, values);
-            },
-            (msg) => {
-              onFailure(values, savedPool.name, new Error(msg));
-            },
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Update of storage pool{" "}
+                <StoragePoolRichChip
+                  poolName={savedPool.name}
+                  projectName={project}
+                />{" "}
+                has started.
+              </>,
+            );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(savedPool.name, values);
+              },
+              (msg) => {
+                onFailure(values, savedPool.name, new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(savedPool.name, values);
+          }
         })
         .catch((e) => {
           onFailure(values, savedPool.name, e);

@@ -12,6 +12,7 @@ import DeleteNetworkAclBtn from "pages/networks/actions/DeleteNetworkAclBtn";
 import { useNetworkAclEntitlements } from "util/entitlements/network-acls";
 import { renameNetworkAcl } from "api/network-acls";
 import DownloadNetworkAclLogsBtn from "pages/networks/actions/DownloadNetworkAclLogsBtn";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useEventQueue } from "context/eventQueue";
 
 interface Props {
@@ -26,6 +27,7 @@ const NetworkAclDetailHeader: FC<Props> = ({ name, networkAcl, project }) => {
   const toastNotify = useToastNotification();
   const controllerState = useState<AbortController | null>(null);
   const { canEditNetworkAcl } = useNetworkAclEntitlements();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   const RenameSchema = Yup.object().shape({
@@ -70,22 +72,26 @@ const NetworkAclDetailHeader: FC<Props> = ({ name, networkAcl, project }) => {
       renameNetworkAcl(name, values.name, project)
         .then((operation) => {
           const url = `${ROOT_PATH}/ui/project/${encodeURIComponent(project)}/network-acl/${encodeURIComponent(values.name)}`;
-          toastNotify.info(
-            <>
-              Renaming of Network ACL <strong>{name}</strong> to{" "}
-              <ResourceLink type="network-acl" value={values.name} to={url} />{" "}
-              has started.
-            </>,
-          );
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(values.name, url);
-            },
-            (msg) => {
-              onFailure(values.name, new Error(msg));
-            },
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Renaming of Network ACL <strong>{name}</strong> to{" "}
+                <ResourceLink type="network-acl" value={values.name} to={url} />{" "}
+                has started.
+              </>,
+            );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(values.name, url);
+              },
+              (msg) => {
+                onFailure(values.name, new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(values.name, url);
+          }
         })
         .catch((e) => {
           onFailure(values.name, e);

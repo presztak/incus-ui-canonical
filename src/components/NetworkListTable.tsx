@@ -8,6 +8,7 @@ import { useNetworks } from "context/useNetworks";
 import type { LxdInstance } from "types/instance";
 import NetworkRichChip from "pages/networks/NetworkRichChip";
 import InstanceLoadBalancerTable from "components/InstanceLoadBalancerTable";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 
 interface Props {
   onFailure: (title: string, e: unknown) => void;
@@ -17,6 +18,7 @@ interface Props {
 
 const NetworkListTable: FC<Props> = ({ onFailure, devices, instance }) => {
   const { project } = useParams<{ project: string }>();
+  const { hasLoadBalancerPools } = useSupportedFeatures();
 
   const {
     data: networks = [],
@@ -73,7 +75,9 @@ const NetworkListTable: FC<Props> = ({ onFailure, devices, instance }) => {
       const networkAcls = getNetworkAcls(network);
       const aclsCount = new Set(deviceAcls.concat(networkAcls)).size;
       const hasLoadBalancers =
-        !!instance && typesWithLoadBalancers.includes(network.type);
+        !!instance &&
+        hasLoadBalancerPools &&
+        typesWithLoadBalancers.includes(network.type);
 
       return {
         key: network.name,

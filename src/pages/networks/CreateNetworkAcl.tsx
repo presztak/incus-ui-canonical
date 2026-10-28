@@ -30,6 +30,7 @@ import NetworkAclForm, {
 } from "pages/networks/forms/NetworkAclForm";
 import { createNetworkAcl } from "api/network-acls";
 import type { LxdNetworkAcl } from "types/network";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useEventQueue } from "context/eventQueue";
 import ResourceLabel from "components/ResourceLabel";
 import NetworkAclExplanationTooltip from "pages/networks/NetworkAclExplanationTooltip";
@@ -42,6 +43,7 @@ const CreateNetworkAcl: FC = () => {
   const { project } = useParams<{ project: string }>();
   const [section, setSection] = useState(slugify(GENERAL));
   const controllerState = useState<AbortController | null>(null);
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   if (!project) {
@@ -110,22 +112,30 @@ const CreateNetworkAcl: FC = () => {
             `${ROOT_PATH}/ui/project/${encodeURIComponent(project)}/network-acls`,
           );
 
-          toastNotify.info(
-            <>
-              Creation of Network ACL{" "}
-              <ResourceLabel bold type="network-acl" value={networkAcl.name} />{" "}
-              has started.
-            </>,
-          );
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(networkAcl.name);
-            },
-            (msg) => {
-              onFailure(networkAcl.name, new Error(msg));
-            },
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Creation of Network ACL{" "}
+                <ResourceLabel
+                  bold
+                  type="network-acl"
+                  value={networkAcl.name}
+                />{" "}
+                has started.
+              </>,
+            );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(networkAcl.name);
+              },
+              (msg) => {
+                onFailure(networkAcl.name, new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(networkAcl.name);
+          }
         })
         .catch((e) => {
           onFailure(networkAcl.name, e);

@@ -22,6 +22,7 @@ import NetworkForwardExplanationTooltip from "pages/networks/NetworkForwardExpla
 import FormFooterLayout from "components/forms/FormFooterLayout";
 import { useEventQueue } from "context/eventQueue";
 import { useNetwork } from "context/useNetworks";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { ROOT_PATH } from "util/rootPath";
 
 const EditNetworkForward: FC = () => {
@@ -41,6 +42,7 @@ const EditNetworkForward: FC = () => {
     memberName?: string;
   }>();
   const { data: network, error } = useNetwork(networkName ?? "", project ?? "");
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   useEffect(() => {
@@ -128,20 +130,24 @@ const EditNetworkForward: FC = () => {
 
       updateNetworkForward(networkName ?? "", forward, project ?? "")
         .then((operation) => {
-          toastNotify.info(
-            <>
-              Update of network forward {forward.listen_address} has started.
-            </>,
-          );
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(forward.listen_address);
-            },
-            (msg) => {
-              onFailure(forward.listen_address, new Error(msg));
-            },
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Update of network forward {forward.listen_address} has started.
+              </>,
+            );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(forward.listen_address);
+              },
+              (msg) => {
+                onFailure(forward.listen_address, new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(forward.listen_address);
+          }
         })
         .catch((e) => {
           onFailure(forward.listen_address, e);

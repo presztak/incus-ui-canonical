@@ -20,6 +20,7 @@ import { pluralize } from "util/helpers";
 import type { StorageBucketKeyFormValues } from "types/forms/storageBucketKey";
 import { useEventQueue } from "context/eventQueue";
 import { useBucketKey } from "context/useBuckets";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import StorageBucketKeyForm from "../forms/StorageBucketKeyForm";
 import { getStorageBucketURL } from "util/storageBucket";
 import { useEscCallback } from "context/useEscCallback";
@@ -34,6 +35,7 @@ const EditStorageBucketKeyPanel: FC<Props> = ({ bucket }) => {
   const notify = useNotify();
   const toastNotify = useToastNotification();
   const queryClient = useQueryClient();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   const closePanel = () => {
@@ -127,32 +129,36 @@ const EditStorageBucketKeyPanel: FC<Props> = ({ bucket }) => {
         project || "",
       )
         .then((operation) => {
-          toastNotify.info(
-            <>
-              Update of key{" "}
-              <ResourceLink
-                type="bucket-key"
-                value={bucketKey?.name ?? ""}
-                to={bucketURL}
-              />{" "}
-              for storage bucket{" "}
-              <ResourceLink
-                type="bucket"
-                value={bucket?.name ?? ""}
-                to={bucketURL}
-              />
-              has started.
-            </>,
-          );
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(bucket);
-            },
-            (msg) => {
-              onFailure(new Error(msg));
-            },
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Update of key{" "}
+                <ResourceLink
+                  type="bucket-key"
+                  value={bucketKey?.name ?? ""}
+                  to={bucketURL}
+                />{" "}
+                for storage bucket{" "}
+                <ResourceLink
+                  type="bucket"
+                  value={bucket?.name ?? ""}
+                  to={bucketURL}
+                />
+                has started.
+              </>,
+            );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(bucket);
+              },
+              (msg) => {
+                onFailure(new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(bucket);
+          }
         })
         .catch((e) => {
           onFailure(e);

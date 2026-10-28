@@ -14,6 +14,7 @@ import {
 } from "@canonical/react-components";
 import { createInstanceBackup } from "api/instances";
 import { useEventQueue } from "context/eventQueue";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useSettings } from "context/useSettings";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "util/queryKeys";
@@ -44,6 +45,7 @@ const ExportInstanceModal: FC<Props> = ({ instance, close }) => {
       projectName={instance.project}
     />
   );
+  const { hasBackupMetadataVersion } = useSupportedFeatures();
   const queryClient = useQueryClient();
   const { data: settings } = useSettings();
   const backupMetadataVersionRange =
@@ -86,7 +88,9 @@ const ExportInstanceModal: FC<Props> = ({ instance, close }) => {
       compression_algorithm: values.compression,
       instance_only: values.instanceOnly,
       optimized_storage: values.optimizedStorage,
-      version: Number(values.exportVersion),
+      version: hasBackupMetadataVersion
+        ? Number(values.exportVersion)
+        : undefined,
     });
 
     createInstanceBackup(instance.name, instance.project, payload)
@@ -189,16 +193,18 @@ const ExportInstanceModal: FC<Props> = ({ instance, close }) => {
             { value: "none", label: "None" },
           ]}
         />
-        <Select
-          {...formik.getFieldProps("exportVersion")}
-          id="exportVersion"
-          label="Export version"
-          help="Lower versions allow imports on older LXD versions"
-          options={backupMetadataVersionRange.map((version) => ({
-            value: version.toString(),
-            label: version.toString(),
-          }))}
-        />
+        {hasBackupMetadataVersion && (
+          <Select
+            {...formik.getFieldProps("exportVersion")}
+            id="exportVersion"
+            label="Export version"
+            help="Lower versions allow imports on older LXD versions"
+            options={backupMetadataVersionRange.map((version) => ({
+              value: version.toString(),
+              label: version.toString(),
+            }))}
+          />
+        )}
         <CheckboxInput
           {...formik.getFieldProps("optimizedStorage")}
           label="Use storage driver optimized format"

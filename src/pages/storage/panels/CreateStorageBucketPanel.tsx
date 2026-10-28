@@ -9,6 +9,7 @@ import {
 import { useState, type FC } from "react";
 import { useEventQueue } from "context/eventQueue";
 import usePanelParams from "util/usePanelParams";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import NotificationRow from "components/NotificationRow";
@@ -40,6 +41,7 @@ const CreateStorageBucketPanel: FC = () => {
   };
 
   useEscCallback(closePanel);
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
 
   const bucketSchema = Yup.object().shape({
     name: Yup.string()
@@ -104,22 +106,26 @@ const CreateStorageBucketPanel: FC = () => {
         values.target,
       )
         .then((operation) => {
-          toastNotify.info(
-            <>
-              Creation of storage bucket{" "}
-              <ResourceLabel bold type="bucket" value={values.name} /> has
-              started.
-            </>,
-          );
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(values.name, values.pool);
-            },
-            (msg) => {
-              onFailure(values.name, new Error(msg));
-            },
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Creation of storage bucket{" "}
+                <ResourceLabel bold type="bucket" value={values.name} /> has
+                started.
+              </>,
+            );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(values.name, values.pool);
+              },
+              (msg) => {
+                onFailure(values.name, new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(values.name, values.pool);
+          }
         })
         .catch((e) => {
           onFailure(values.name, e);

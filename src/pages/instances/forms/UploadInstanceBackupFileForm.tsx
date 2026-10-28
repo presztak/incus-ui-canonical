@@ -21,6 +21,7 @@ import type { AxiosError } from "axios";
 import type { LxdSyncResponse } from "types/apiResponse";
 import * as Yup from "yup";
 import classnames from "classnames";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import InstanceFileTypeSelector, {
   type InstanceFileType,
 } from "./InstanceFileTypeSelector";
@@ -55,6 +56,7 @@ const UploadInstanceBackupFileForm: FC<Props> = ({
   const navigate = useNavigate();
   const [uploadAbort, setUploadAbort] = useState<AbortController | null>(null);
   const instanceNameAbort = useState<AbortController | null>(null);
+  const { hasInstanceImportConversion } = useSupportedFeatures();
 
   const handleSuccess = (instanceName: string) => {
     const instanceUrl = `${ROOT_PATH}/ui/project/${encodeURIComponent(project?.name ?? "")}/instance/${encodeURIComponent(instanceName)}`;
@@ -190,14 +192,16 @@ const UploadInstanceBackupFileForm: FC<Props> = ({
         onSubmit={formik.handleSubmit}
         className={classnames({ "u-hide": uploadState })}
       >
-        <InstanceFileTypeSelector value={fileType} onChange={setFileType} />
+        {hasInstanceImportConversion && (
+          <InstanceFileTypeSelector value={fileType} onChange={setFileType} />
+        )}
         <Input
           id="instance-file"
           name="instanceFile"
           type="file"
           accept=".tar, application/gzip, application/x-bzip, application/x-xz, application/x-lzma, application/x-squashfs, application/x-qcow2, application/zstd"
           label="Local file"
-          labelClassName="u-hide"
+          labelClassName={hasInstanceImportConversion ? "u-hide" : ""}
           onChange={(e) => void changeFile(e)}
         />
         <Input

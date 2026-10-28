@@ -11,6 +11,7 @@ import { useCurrentProject } from "context/useCurrentProject";
 import ResourceLink from "components/ResourceLink";
 import { getStorageBucketURL } from "util/storageBucket";
 import { useBulkDetails } from "context/useBulkDetails";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 
 interface Props {
   keys: LxdStorageBucketKey[];
@@ -30,6 +31,7 @@ const StorageBucketKeyBulkDelete: FC<Props> = ({
   const [isLoading, setLoading] = useState(false);
   const viewBulkDetails = useBulkDetails();
   const { project } = useCurrentProject();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const projectName = project?.name || "";
   const totalCount = keys.length;
 
@@ -54,7 +56,12 @@ const StorageBucketKeyBulkDelete: FC<Props> = ({
       </>
     );
 
-    deleteStorageBucketKeyBulk(bucket, keys, projectName)
+    deleteStorageBucketKeyBulk(
+      bucket,
+      keys,
+      projectName,
+      hasStorageAndNetworkOperations,
+    )
       .then((results) => {
         const { fulfilledCount, rejectedCount } =
           getPromiseSettledCounts(results);

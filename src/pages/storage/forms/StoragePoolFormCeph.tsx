@@ -7,12 +7,15 @@ import type { FormikProps } from "formik";
 import StoragePoolFormCephReplicators from "pages/storage/forms/StoragePoolFormCephReplicators";
 import type { StoragePoolFormValues } from "types/forms/storagePool";
 import { optionTrueFalse } from "util/options";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 
 interface Props {
   formik: FormikProps<StoragePoolFormValues>;
 }
 
 const StoragePoolFormCeph: FC<Props> = ({ formik }) => {
+  const { hasRemoteDropSource, hasReplicators } = useSupportedFeatures();
+
   const updateCloneCopy = (cloneCopy: string | undefined): void => {
     void formik.setValues({
       ...formik.values,
@@ -29,13 +32,17 @@ const StoragePoolFormCeph: FC<Props> = ({ formik }) => {
       <ConfigurationTable
         className="ceph-configuration-table u-no-margin--bottom"
         rows={[
-          getConfigurationRow({
-            formik,
-            label: "Ceph OSD pool name",
-            name: "ceph_osd_pool_name",
-            defaultValue: "",
-            children: <Input type="text" placeholder="Enter pool name" />,
-          }),
+          ...(hasRemoteDropSource
+            ? [
+                getConfigurationRow({
+                  formik,
+                  label: "Ceph OSD pool name",
+                  name: "ceph_osd_pool_name",
+                  defaultValue: "",
+                  children: <Input type="text" placeholder="Enter pool name" />,
+                }),
+              ]
+            : []),
           getConfigurationRow({
             formik,
             label: "Cluster name",
@@ -92,7 +99,7 @@ const StoragePoolFormCeph: FC<Props> = ({ formik }) => {
           }),
         ]}
       />
-      <StoragePoolFormCephReplicators formik={formik} />
+      {hasReplicators && <StoragePoolFormCephReplicators formik={formik} />}
     </ScrollableForm>
   );
 };

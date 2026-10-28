@@ -10,6 +10,7 @@ import {
 import { deleteNetworkForward } from "api/network-forwards";
 import { useNetworkEntitlements } from "util/entitlements/networks";
 import ResourceLabel from "components/ResourceLabel";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useEventQueue } from "context/eventQueue";
 import DsIcon from "components/DsIcon";
 
@@ -25,6 +26,7 @@ const DeleteNetworkForwardBtn: FC<Props> = ({ network, forward, project }) => {
   const queryClient = useQueryClient();
   const [isLoading, setLoading] = useState(false);
   const { canEditNetwork } = useNetworkEntitlements();
+  const { hasStorageAndNetworkOperations } = useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   const invalidateCache = () => {
@@ -65,26 +67,30 @@ const DeleteNetworkForwardBtn: FC<Props> = ({ network, forward, project }) => {
     setLoading(true);
     deleteNetworkForward(network, forward, project)
       .then((operation) => {
-        toastNotify.info(
-          <>
-            Deletion of network forward with listen address{" "}
-            <ResourceLabel
-              bold
-              type="network-forward"
-              value={forward.listen_address}
-            />{" "}
-            has started.
-          </>,
-        );
-        eventQueue.set(
-          operation.metadata.id,
-          () => {
-            onSuccess();
-          },
-          (msg) => {
-            onFailure(new Error(msg));
-          },
-        );
+        if (hasStorageAndNetworkOperations) {
+          toastNotify.info(
+            <>
+              Deletion of network forward with listen address{" "}
+              <ResourceLabel
+                bold
+                type="network-forward"
+                value={forward.listen_address}
+              />{" "}
+              has started.
+            </>,
+          );
+          eventQueue.set(
+            operation.metadata.id,
+            () => {
+              onSuccess();
+            },
+            (msg) => {
+              onFailure(new Error(msg));
+            },
+          );
+        } else {
+          onSuccess();
+        }
       })
       .catch((e) => {
         onFailure(e);

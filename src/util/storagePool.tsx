@@ -228,8 +228,16 @@ export const isCephFSDriver = (values: StoragePoolFormValues) => {
   return values.driver === cephFSDriver;
 };
 
-export const hasSource = (driver: string): boolean => {
+export const hasSource = (
+  driver: string,
+  hasRemoteDropSource: boolean,
+): boolean => {
   const driversWithSource = [btrfsDriver, dirDriver, lvmDriver, zfsDriver];
+
+  if (hasRemoteDropSource) {
+    driversWithSource.push(cephDriver);
+    driversWithSource.push(cephFSDriver);
+  }
 
   return driversWithSource.includes(driver);
 };

@@ -34,6 +34,7 @@ import type { LxdStoragePool } from "types/storage";
 import YamlSwitch from "components/forms/YamlSwitch";
 import StoragePoolRichChip from "./StoragePoolRichChip";
 import { ROOT_PATH } from "util/rootPath";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { useEventQueue } from "context/eventQueue";
 import ResourceLabel from "components/ResourceLabel";
 
@@ -46,6 +47,8 @@ const CreateStoragePool: FC = () => {
   const [section, setSection] = useState(slugify(MAIN_CONFIGURATION));
   const controllerState = useState<AbortController | null>(null);
   const { data: clusterMembers = [] } = useClusterMembers();
+  const { hasRemoteDropSource, hasStorageAndNetworkOperations } =
+    useSupportedFeatures();
   const eventQueue = useEventQueue();
 
   if (!project) {
@@ -97,7 +100,7 @@ const CreateStoragePool: FC = () => {
     onSubmit: (values) => {
       const storagePool = values.yaml
         ? (yamlToObject(values.yaml) as LxdStoragePool)
-        : toStoragePool(values);
+        : toStoragePool(values, hasRemoteDropSource);
 
       const mutation =
         clusterMembers.length > 0
@@ -105,6 +108,7 @@ const CreateStoragePool: FC = () => {
               createClusteredPool(
                 storagePool,
                 clusterMembers,
+                hasStorageAndNetworkOperations,
                 values.sourcePerClusterMember,
                 values.zfsPoolNamePerClusterMember,
                 values.sizePerClusterMember,
@@ -117,22 +121,26 @@ const CreateStoragePool: FC = () => {
             `${ROOT_PATH}/ui/project/${encodeURIComponent(project)}/storage/pools`,
           );
 
-          toastNotify.info(
-            <>
-              Creation of storage pool{" "}
-              <ResourceLabel bold type="pool" value={storagePool.name} /> has
-              started.
-            </>,
-          );
-          eventQueue.set(
-            operation.metadata.id,
-            () => {
-              onSuccess(storagePool.name);
-            },
-            (msg) => {
-              onFailure(new Error(msg));
-            },
-          );
+          if (hasStorageAndNetworkOperations) {
+            toastNotify.info(
+              <>
+                Creation of storage pool{" "}
+                <ResourceLabel bold type="pool" value={storagePool.name} /> has
+                started.
+              </>,
+            );
+            eventQueue.set(
+              operation.metadata.id,
+              () => {
+                onSuccess(storagePool.name);
+              },
+              (msg) => {
+                onFailure(new Error(msg));
+              },
+            );
+          } else {
+            onSuccess(storagePool.name);
+          }
         })
         .catch((e) => {
           onFailure(e);

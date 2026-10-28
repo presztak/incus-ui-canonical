@@ -31,6 +31,7 @@ import BaseLayout from "components/BaseLayout";
 import ProjectExplanationTooltip from "pages/projects/ProjectExplanationTooltip";
 import FormFooterLayout from "components/forms/FormFooterLayout";
 import { slugify } from "util/slugify";
+import { useSupportedFeatures } from "context/useSupportedFeatures";
 import { fetchProfile, updateProfile } from "api/profiles";
 import { useProfile } from "context/useProfiles";
 import { useAuth } from "context/auth";
@@ -49,6 +50,7 @@ const CreateProject: FC = () => {
   const queryClient = useQueryClient();
   const controllerState = useState<AbortController | null>(null);
   const [section, setSection] = useState(slugify(PROJECT_DETAILS));
+  const { hasReplicators } = useSupportedFeatures();
   const { isFineGrained } = useAuth();
 
   const { data: defaultProjectDefaultProfile } = useProfile(
@@ -131,7 +133,7 @@ const CreateProject: FC = () => {
             ...projectDetailRestrictionPayload(values),
             ...resourceLimitsPayload(values),
             ...restrictions,
-            ...replicaPayload(values),
+            ...(hasReplicators ? replicaPayload(values) : {}),
           },
         }),
       )
